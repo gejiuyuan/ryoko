@@ -1,0 +1,23 @@
+{
+  "compilerOptions": { 
+    "target": "es5",                         
+    "module": "esnext",                     
+    "lib": [
+      "DOM",
+      "ESNext",
+    ],                             
+    "allowJs": true,                      
+    "declaration": true,               
+    "declarationMap": true,                 
+    "sourceMap": true,                     
+    "downlevelIteration": true,            
+    "isolatedModules": true,     
+    "strict": true,      
+    "moduleResolution": "node",   
+    "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
+    "esModuleInterop": true,                  
+    /* Advanced Options */
+    "skipLibCheck": true,                     /* Skip type checking of declaration files. */
+    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
+  }
+}
