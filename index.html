@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ryoko</title>
+</head>
+
+<body> 
+    
+    <script type="module">
+
+        import ryoko from './dist/ryoko.esm.js';
+        const AbortTokenizer = ryoko.AbortTokenizer;
+        const creator = AbortTokenizer.create();
+
+        let anfrage = ryoko.create({
+            timeout: 10000,
+            onDefer() {
+                console.info(this)
+            },
+            downloadScheduler({ percent, total, received, buffer }) {
+                // console.info(percent, received, total , buffer )
+            },
+            fetch: fetch,
+
+        })
+
+
+        anfrage.interceptors.request.use((config) => {
+            return config;
+        })
+        anfrage.interceptors.response.use((res) => {
+            return res;
+        })
+
+        anfrage.get('https://api.i-meto.com/meting/api', {
+            timeout: 800,
+            params: {
+                server: 'netease',
+                type: 'lrc',
+                id: 2308499,
+                auth: 'da2b901838c26e789182ebbd1c0618feb5a73551'
+            },
+            responseType: 'text',
+            beforeRequest(config) {
+
+            },
+            afterResponse(res) {
+            
+            },
+            abortToken: creator.token,
+
+        }).then((res) => {
+            console.info(res)
+        })
+
+        // anfrage({
+        //     url: 'https://suprise.github.io/mobx-cn/fp.html',
+        //     beforeRequest(config) {
+
+        //     },
+        //     afterResponse(res) {
+        //     },
+        //     abortToken: creator.token,
+        // })
+
+        // anfrage({
+        //     url: 'https://i8.mifile.cn/b2c-mimall-media/93650133310ec1c385487417a472a26c.png',
+        //     beforeRequest(config) {
+
+        //     },
+        //     afterResponse(res) {
+        //     },
+        // })
+
+        // setTimeout(() => {
+        //     creator.stop()
+        // }, 50)
+
+        // ryoko.get('https://suprise.github.io/mobx-cn/fp.html').then(res => {
+        //     return res.data.text()
+        // }).then(d => console.dir(new DOMParser().parseFromString(d, 'application/xhtml+xml')))
+
+
+    </script>
+</body>
+
+</html>

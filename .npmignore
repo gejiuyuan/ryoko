@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+tsconfig.json
+src
+test
+__tests__
+jest.config.js
+rollupconfig.js
+index.html
+.babelrc

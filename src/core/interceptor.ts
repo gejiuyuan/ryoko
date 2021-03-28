@@ -1,19 +1,10 @@
 import { 
-    DemandeConfig, 
+    RyokoConfig, 
     InterceptorItem,
     InterceptorFn,
-} from '../index'
-
-export declare interface InterceptorCtor<T> {
-    callbacks: Array<InterceptorItem<T> | undefined>;
-    use(
-        onsuccess?: InterceptorFn<T>,
-        onfailure?: InterceptorFn<T>
-    ): number;
-    eject(serie: number): void;
-    traverse(fn: Function): void;
-}
-
+    InterceptorCtor,
+} from 'types'
+ 
 /**
  * 拦截器 the interceptor of request method
  */

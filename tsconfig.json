@@ -1,23 +1,27 @@
 {
-  "compilerOptions": { 
-    "target": "es5",                         
-    "module": "esnext",                     
-    "lib": [
-      "DOM",
-      "ESNext",
-    ],                             
-    "allowJs": true,                      
-    "declaration": true,               
-    "declarationMap": true,                 
-    "sourceMap": true,                     
-    "downlevelIteration": true,            
-    "isolatedModules": true,     
-    "strict": true,      
-    "moduleResolution": "node",   
-    "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
-    "esModuleInterop": true,                  
-    /* Advanced Options */
-    "skipLibCheck": true,                     /* Skip type checking of declaration files. */
-    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
-  }
+	"compilerOptions": {
+		"target": "es2015", //rollup目标编译es版本
+		"module": "esnext",
+		"lib": ["DOM", "esnext"],
+		"outDir": "lib",
+		"rootDir": "src",
+		"baseUrl": "./",
+		"paths": {
+			"@/*": ["./src/*"],
+			"types/*": ["./types/*"]
+		},
+		// "declaration": true,
+		// "declarationDir": "types",
+		// "declarationMap": true,
+		// "sourceMap": true,
+		"downlevelIteration": true,
+		// "isolatedModules": true,
+		"strict": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.d.ts", "global.d.ts"],
+	"exclude": ["__test__/**/*.ts"]
 }

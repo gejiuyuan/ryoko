@@ -1,0 +1,9 @@
+node_modules
+*.html
+types
+dist
+LICENSE
+.gitignore
+.npmignore
+__tests__
+
