@@ -64,9 +64,9 @@ export default function dispatchFetch(
 
     //fetch请求取消控制器
     let abortCtrl = new RyokoAbortController();
-    const abortCb = (msg?: any) => {
+    const abortCb = (msg: any) => {
         abortCtrl?.restoreAbortTimer();
-        abortCtrl?.setAbortMsg(msg || '');
+        abortCtrl?.setAbortMsg(msg);
         abortCtrl?.abortFetch();
     }
 
@@ -95,15 +95,25 @@ export default function dispatchFetch(
 
     //存储abortber到该请求实例上 
     fetchConfig.signal = abortCtrl.singal;
-    abortCtrl.deferAbort(timeout, abortMsg => {
-        onDefer && onDefer.call(this, abortMsg);
-    });
+    //添加超时终止请求处理
+    abortCtrl.deferAbort(timeout);
 
     return new Promise<RyokoResponse>((resolve, reject) => {
 
         //监听取消控制器的终止请求状态
         abortCtrl.abortState().then((abortMsg) => {
-            reject(abortMsg);
+            //如果是超时终止的请求，则执行
+            if (abortCtrl.isDefer) {
+                onDefer && onDefer.call(this, cloneConfig);
+                reject(
+                    new RyokoError(
+                        abortMsg,
+                        {
+                            config: cloneConfig
+                        }
+                    )
+                );
+            }
         });
 
         RyokoFetch(
@@ -142,6 +152,10 @@ export default function dispatchFetch(
             },
 
             err => {
+
+                if (abortCtrl.aborted) return
+
+                //如果不是超时和用户手动取消请求的就走这一步(如服务器错误、网络错误等)
                 const status = err?.status
                 const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
                 reject(
@@ -150,6 +164,7 @@ export default function dispatchFetch(
                         config: cloneConfig
                     })
                 )
+
             }
         )
     });

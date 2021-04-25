@@ -499,6 +499,7 @@ function dispatchFetch(config) {
     return new Promise((resolve, reject) => {
         //监听取消控制器的终止请求状态
         abortCtrl.abortState().then((abortMsg) => {
+            console.info(9)
             reject(abortMsg);
         });
         RyokoFetch(fetchUrl, fetchConfig).then(res => {
@@ -521,6 +522,7 @@ function dispatchFetch(config) {
                 config: cloneConfig
             }));
         }, err => {
+
             const status = err === null || err === void 0 ? void 0 : err.status;
             const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
             reject(new RyokoError(errMsg, {

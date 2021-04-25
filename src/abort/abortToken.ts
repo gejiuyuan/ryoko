@@ -4,6 +4,8 @@ import {
     TokenStoreSpace
 } from 'types';
 
+const defaultAbortMsg = 'The user aborted a request'
+
 export default class AbortTokenizer {
 
     static abortName = 'ryokoToken';
@@ -16,7 +18,7 @@ export default class AbortTokenizer {
         const _tokenSet: TokenStoreSpace = new Set()
         tokenStore.set(symbolKey, _tokenSet);
         return {
-            stop(msg?: any) {
+            stop(msg: any = defaultAbortMsg) {
                 for (let abortCb of _tokenSet) {
                     abortCb(msg);
                 }
