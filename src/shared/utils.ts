@@ -124,30 +124,7 @@ export const appendParam = (
         ? value.forEach(v => form.append(key, v))
         : form.append(key, value);
 }
-
-export const generateDataBody = (
-    source: RyokoAppendBodySource,
-    type: RyokoAppendBody
-) => {
-    let dataBody = null;
-    switch (type) {
-        case fetchBodyAppendDataTypes.FORMDATA:
-            dataBody = new FormData();
-            break;
-        case fetchBodyAppendDataTypes.URLSEARCHPARAMS:
-            dataBody = new URLSearchParams();
-            break;
-        default:
-            throw new TypeError(
-                `the parameter 'type' must be one of the two Options: 'FormData'、'URLSearchParams'`
-            )
-    }
-    for (let key in source) {
-        hasOwn(source, key) && appendParam(dataBody, key, source[key]);
-    }
-    return dataBody as FormData | URLSearchParams
-}
-
+ 
 export const queryToObj = (
     query: string
 ) => {

@@ -11,10 +11,11 @@ import {
 import {
     credentialsTypes,
     ryokoMethods,
-     _globalThis
+    _globalThis
 } from './constant'
 import RyokoError from "./ryokoError";
 import { resolveRyokoBody } from "./resolver";
+import { warn } from "./warn";
 
 const mergeRyokoConfig = (
     initialConfig: RyokoMergedConfig,
@@ -37,9 +38,10 @@ const mergeRyokoConfig = (
     if (ryokoMethods.some(_ => _.match(methodReg))) {
         mergedConfig.method = method = method.toLowerCase();
     } else {
-        throw new RyokoError(
+        warn(
             `The 'method' parameter must be one of the ${ryokoMethods.length} 
-            options:${ryokoMethods.join('、')}`
+            options:${ryokoMethods.join('、')}`,
+            'TypeError'
         )
     }
 
@@ -50,7 +52,10 @@ const mergeRyokoConfig = (
     }
 
     if (!isFetch(ryokoFetch)) {
-        throw new RyokoError(`The 'fetch' option you provided is not a function!`);
+        warn(
+            `The 'fetch' option you provided is not a function!`,
+            'TypeError'
+        )
     }
 
     if (typeof credentials === 'boolean') {
@@ -58,8 +63,9 @@ const mergeRyokoConfig = (
     } else if (
         !credentialsTypes.includes(credentials)
     ) {
-        throw new RyokoError(
-            `The valid type of 'credentials' paramter：Boolean、undefined、${credentialsTypes.join('、')}`
+        warn(
+            `The valid type of 'credentials' paramter：Boolean、undefined、${credentialsTypes.join('、')}`,
+            'TypeError'
         )
     }
 

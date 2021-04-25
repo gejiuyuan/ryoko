@@ -24,7 +24,6 @@ import {
     typeOf,
     extend,
     is,
-    generateDataBody,
     getURLDescriptors,
     objToQuery,
     queryToObj,
@@ -34,7 +33,7 @@ import {
     URLPATT,
 } from '../shared/utils';
 import Ryoko from '../core/ryoko';
-
+import { warn } from './warn';
 
 /**
  * 生成fetch url
@@ -52,7 +51,10 @@ export const resolveRyokoUrl = (
     prefixURL = decodeURIComponent(prefixURL).trim();
     if (URLPATT.test(url)) {
         if (prefixURL.length > 0) {
-            throw new RyokoError(`the combination of 'baseURL' and 'url' is invalid!`);
+            warn(
+                `the combination of 'baseURL' and 'url' is invalid!`,
+                'URIError'
+            )
         }
     } else {
         url = `${prefixURL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
@@ -66,8 +68,9 @@ export const resolveRyokoUrl = (
     } else if (typeOf(params) === 'URLSearchParams') {
         params = iteratorToObj(params as URLSearchParams)
     } else if (!is.PlainObject(params)) {
-        throw new TypeError(
-            `the type of 'params' parameter must be one of the thres options: 'String'、'PlainObject'、'URLSearchParams'`
+        warn(
+            `the type of 'params' parameter must be one of the thres options: 'String'、'PlainObject'、'URLSearchParams'`,
+            'TypeError'
         );
     }
     const realSearchString = objToQuery(
@@ -94,7 +97,10 @@ export const resolveRyokoBody = (
     } else if (is.PlainObject(data)) {
         return JSON.stringify(data)
     }
-    throw new RyokoError(`The original or converted value of 'data' parameter is invalid`);
+    warn(
+        `The original or converted value of 'data' parameter is invalid`,
+        'TypeError'
+    );
 }
 
 export const resolveRyokoResData = async (
@@ -111,7 +117,10 @@ export const resolveRyokoResData = async (
     if (tarResType) {
         return await resClone[tarResType]();
     }
-    throw new RyokoError(`The value of 'responseType' parameter is invalid!`);
+    warn(
+        `The value of 'responseType' parameter is invalid!`,
+        'TypeError'
+    );
 }
 
 // 生成Ryoko resolve返回值

@@ -207,11 +207,11 @@ const ryokoStreamDeliver = function (fetchRes, cb) {
     const resBody = body;
     let returnStream, progressStream;
     if (cb !== void 0) {
-        const dataLength = Number(headers.get(CONTENT_LENGTH)) || 0;
         let dataReceivedLength = 0;
+        const dataLength = Number(headers.get(CONTENT_LENGTH)) || 0;
+        let progressStreamReader;
         const prgsReaderFn = (controller) => {
-            progressStream
-                .getReader()
+            progressStreamReader
                 .read()
                 .then(({ value, done }) => {
                 if (done) {
@@ -234,10 +234,12 @@ const ryokoStreamDeliver = function (fetchRes, cb) {
         try {
             const teedStreams = resBody.tee();
             [returnStream, progressStream] = teedStreams;
+            progressStreamReader = progressStream.getReader();
             prgsReaderFn();
         }
         catch (err) {
             progressStream = resBody;
+            progressStreamReader = progressStream.getReader();
             returnStream = new _globalThis.ReadableStream({
                 start(controller) {
                     prgsReaderFn(controller);
@@ -254,11 +256,11 @@ const ryokoStreamDeliver = function (fetchRes, cb) {
 };
 
 class RyokoError extends Error {
-    constructor(message, options) {
+    constructor(message, options = {}) {
         super(message);
         this.name = 'RyokoError';
         this.isRyokoError = true;
-        this.options = options;
+        extend(this, options);
     }
     toString() {
         return `${this.name}: ${this.message}`;
@@ -272,13 +274,33 @@ class RyokoError extends Error {
         //火狐
         fileName, lineNumber, stack, columnNumber, 
         //Ryoko
-        options } = this;
-        const { config, status } = options;
+        config, status, } = this;
         return {
-            message, number, description, fileName, lineNumber, stack, columnNumber, name, config, status
+            message, number, description, fileName, lineNumber, stack, columnNumber, name,
+            config, status,
         };
     }
 }
+
+const errors = [
+    Error,
+    URIError,
+    TypeError,
+    RangeError,
+    ReferenceError,
+    SyntaxError,
+    RyokoError,
+];
+const errTypesMatchPatts = errors.map(Ctor => new RegExp(Ctor.name, 'i'));
+const warn = (msg, type = 'Error', options) => {
+    if (type === 'console') {
+        console.warn(msg, `options：${options}`);
+        return;
+    }
+    let idx = errTypesMatchPatts.findIndex(patt => patt.test(type));
+    !~idx && (idx = 0);
+    throw new errors[idx](msg);
+};
 
 /**
  * ryoko取消控制器
@@ -298,11 +320,11 @@ class RyokoAbortController {
             return;
         }
         if (Number.isNaN(timeout) || timeout < 0) {
-            throw new RyokoError(`the type of parameter 'timeout' is invalid!`);
+            warn(`the type of parameter 'timeout' is invalid!`, 'TypeError');
         }
         this.abortTimer = setTimeout(() => {
-            const abortMsg = new RyokoError(`The request duration exceeded the maximum limit of ${timeout} 
-                    milliseconds and has been interrupted`);
+            const abortMsg = `The request duration exceeded the maximum limit of ${timeout} 
+                    milliseconds and has been interrupted`;
             this.setAbortMsg(abortMsg);
             this.abortFetch();
             cb(abortMsg);
@@ -349,7 +371,7 @@ const resolveRyokoUrl = (prefixURL, url, params) => {
     prefixURL = decodeURIComponent(prefixURL).trim();
     if (URLPATT.test(url)) {
         if (prefixURL.length > 0) {
-            throw new RyokoError(`the combination of 'baseURL' and 'url' is invalid!`);
+            warn(`the combination of 'baseURL' and 'url' is invalid!`, 'URIError');
         }
     }
     else {
@@ -366,7 +388,7 @@ const resolveRyokoUrl = (prefixURL, url, params) => {
         params = iteratorToObj(params);
     }
     else if (!is.PlainObject(params)) {
-        throw new TypeError(`the type of 'params' parameter must be one of the thres options: 'String'、'PlainObject'、'URLSearchParams'`);
+        warn(`the type of 'params' parameter must be one of the thres options: 'String'、'PlainObject'、'URLSearchParams'`, 'TypeError');
     }
     const realSearchString = objToQuery(extend(searchObj, params), true);
     return url + realSearchString;
@@ -384,7 +406,7 @@ const resolveRyokoBody = (data) => {
     else if (is.PlainObject(data)) {
         return JSON.stringify(data);
     }
-    throw new RyokoError(`The original or converted value of 'data' parameter is invalid`);
+    warn(`The original or converted value of 'data' parameter is invalid`, 'TypeError');
 };
 const resolveRyokoResData = (res, config) => __awaiter(void 0, void 0, void 0, function* () {
     const responseType = config.responseType.trim();
@@ -397,7 +419,7 @@ const resolveRyokoResData = (res, config) => __awaiter(void 0, void 0, void 0, f
     if (tarResType) {
         return yield resClone[tarResType]();
     }
-    throw new RyokoError(`The value of 'responseType' parameter is invalid!`);
+    warn(`The value of 'responseType' parameter is invalid!`, 'TypeError');
 });
 // 生成Ryoko resolve返回值
 const resolveRyokoResponse = (res, config) => __awaiter(void 0, void 0, void 0, function* () {
@@ -439,7 +461,7 @@ AbortTokenizer.tokenStore = new Map();
 function dispatchFetch(config) {
     //如果未在拦截器中返回config配置，则抛出错误
     if (Object(config) !== config) {
-        throw new RyokoError(`The request 'config' is invalid, is it returned in the request interceptor?`);
+        warn(`The request 'config' is invalid, is it returned in the request interceptor?`, 'RyokoError');
     }
     const cloneConfig = Object.assign({}, config);
     let { prefixURL, url, params, data, timeout, method, onDefer, verifyStatus, downloadScheduler, headers, fetch: RyokoFetch, abortToken } = cloneConfig;
@@ -499,8 +521,12 @@ function dispatchFetch(config) {
                 config: cloneConfig
             }));
         }, err => {
+            const status = err === null || err === void 0 ? void 0 : err.status;
             const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
-            reject(errMsg);
+            reject(new RyokoError(errMsg, {
+                status,
+                config: cloneConfig
+            }));
         });
     });
 }
@@ -513,8 +539,8 @@ const mergeRyokoConfig = (initialConfig, commonConfig) => {
         mergedConfig.method = method = method.toLowerCase();
     }
     else {
-        throw new RyokoError(`The 'method' parameter must be one of the ${ryokoMethods.length} 
-            options:${ryokoMethods.join('、')}`);
+        warn(`The 'method' parameter must be one of the ${ryokoMethods.length} 
+            options:${ryokoMethods.join('、')}`, 'TypeError');
     }
     if (['get', 'head', 'options'].includes(method)) {
         delete mergedConfig.data;
@@ -523,13 +549,13 @@ const mergeRyokoConfig = (initialConfig, commonConfig) => {
         mergedConfig.data = resolveRyokoBody(data);
     }
     if (!isFetch(ryokoFetch)) {
-        throw new RyokoError(`The 'fetch' option you provided is not a function!`);
+        warn(`The 'fetch' option you provided is not a function!`, 'TypeError');
     }
     if (typeof credentials === 'boolean') {
         credentials = credentials ? 'include' : 'omit';
     }
     else if (!credentialsTypes.includes(credentials)) {
-        throw new RyokoError(`The valid type of 'credentials' paramter：Boolean、undefined、${credentialsTypes.join('、')}`);
+        warn(`The valid type of 'credentials' paramter：Boolean、undefined、${credentialsTypes.join('、')}`, 'TypeError');
     }
     return mergedConfig;
 };

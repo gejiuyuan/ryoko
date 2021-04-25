@@ -6,7 +6,8 @@ import {
     RyokoResponse,
     DownloadSchedulerFn,
     RyokoInstance,
-    RyokoClass
+    RyokoClass,
+    Ryoko
 } from 'types'
 
 import { ryokoStreamDeliver } from './ryokoStreamDeliver'
@@ -32,6 +33,7 @@ import {
 import RyokoError from '../helpers/ryokoError'
 
 import AbortTokenizer from '../abort/abortToken'
+import { warn } from '@/helpers/warn'
 
 export default function dispatchFetch(
     this: RyokoClass,
@@ -39,9 +41,10 @@ export default function dispatchFetch(
 ) {
     //如果未在拦截器中返回config配置，则抛出错误
     if (Object(config) !== config) {
-        throw new RyokoError(
-            `The request 'config' is invalid, is it returned in the request interceptor?`
-        );
+        warn(
+            `The request 'config' is invalid, is it returned in the request interceptor?`,
+            'RyokoError'
+        )
     }
     const cloneConfig = { ...config }
     let {
@@ -114,9 +117,9 @@ export default function dispatchFetch(
                 abortCtrl = null!;//!作用是告知ts强制转null为RyokoAbortController类型
 
                 const { body: resBody, status, } = res;
-                
+
                 //将相应数据以流的形式传送处理
-                if(resBody != null) {
+                if (resBody != null) {
                     res = ryokoStreamDeliver.call(this, res, downloadScheduler)
                 }
 
@@ -139,9 +142,13 @@ export default function dispatchFetch(
             },
 
             err => {
+                const status = err?.status
                 const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
                 reject(
-                    errMsg  
+                    new RyokoError(errMsg, {
+                        status,
+                        config: cloneConfig
+                    })
                 )
             }
         )

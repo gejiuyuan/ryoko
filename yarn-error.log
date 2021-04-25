@@ -1,0 +1,113 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js i
+
+PATH: 
+  C:\Users\Administrator\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Administrator\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Program Files\nodejs;C:\Program Files\Git\cmd;C:\Program Files (x86)\Yarn\bin;C:\Program Files\nodejs\node_global;C:\Users\Administrator\AppData\Local\Yarn\bin;C:\Users\Administrator\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.22.5
+
+Node version: 
+  12.19.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  SyntaxError: D:\Users\Administrator\Desktop\ryoko\package.json: Unexpected token } in JSON at position 505
+      at JSON.parse (<anonymous>)
+      at C:\Program Files (x86)\Yarn\lib\cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (C:\Program Files (x86)\Yarn\lib\cli.js:310:30)
+      at C:\Program Files (x86)\Yarn\lib\cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "ryoko",
+    "version": "0.1.42",
+    "description": "a requestion lib based on the fetch native api",
+    "main": "dist/ryoko.cjs.js",
+    "types": "types/index.d.ts",
+    "module": "lib/index.js",
+    "jsdelivr": "dist/ryoko.min.js",
+    "unpkg": "dist/ryoko.min.js",
+    "scripts": {
+      "format": "npx prettier -w './**/*.(t|j)s'",
+      "test": "jest --detectOpenHandles",
+      "build:rollup": "rollup --config",
+      "build:tsc": "npx tsc -p .",
+      "build": "npm run build:rollup && npm run build:tsc", 
+    },
+    "keywords": [
+      "ryoko",
+      "fetch",
+      "response",
+      "abortController",
+      "request",
+      "demande",
+      "anfrage",
+      "guoxiaoyou",
+      "lib",
+      "node-fetch",
+      "whatwg-fetch",
+      "http",
+      "https",
+      "xhr",
+      "get",
+      "network"
+    ],
+    "files": [
+      "dist",
+      "lib",
+      "types",
+      "global.d.ts"
+    ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/gejiuyuan/ryoko"
+    },
+    "private": false,
+    "email": "gezhuliang666@gmail.com",
+    "author": {
+      "name": "guoxiaoyou",
+      "url": "https://gejiuyuan.gitee.io"
+    },
+    "bugs": {
+      "url": "https://github.com/gejiuyuan/ryoko/issues"
+    },
+    "license": "MIT",
+    "devDependencies": {
+      "@babel/cli": "^7.13.10",
+      "@babel/core": "^7.13.13",
+      "@babel/preset-env": "^7.13.12",
+      "@babel/preset-typescript": "^7.13.0",
+      "@rollup/plugin-alias": "^3.1.2",
+      "@rollup/plugin-commonjs": "^17.1.0",
+      "@rollup/plugin-json": "^4.1.0",
+      "@rollup/plugin-node-resolve": "^11.2.0",
+      "@types/form-data": "^2.5.0",
+      "@types/jest": "^26.0.22",
+      "@types/node": "^14.14.35",
+      "@types/node-fetch": "^2.5.8",
+      "babel-jest": "^26.6.3",
+      "eslint-plugin-prettier": "^3.3.1",
+      "jest": "^26.6.3",
+      "rollup": "^2.41.4",
+      "rollup-plugin-terser": "^7.0.2",
+      "rollup-plugin-typescript2": "^0.30.0",
+      "ts-jest": "^26.5.4",
+      "ts-node": "^9.1.1",
+      "typescript": "^4.2.3"
+    },
+    "dependencies": {
+      "abort-controller": "^3.0.0",
+      "form-data": "^2.3.3",
+      "node-fetch": "^2.6.1"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

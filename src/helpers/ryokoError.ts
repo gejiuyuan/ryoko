@@ -1,19 +1,22 @@
-import { RyokoMergedConfig , RyokoErrorOptions } from "types";
- 
+import { extend } from "@/shared/utils";
+import { RyokoMergedConfig, RyokoErrorOptions } from "types";
+
 export default class RyokoError extends Error {
 
-    public readonly name: string = 'RyokoError';
+    public readonly name: string = 'RyokoError'
 
-    public readonly isRyokoError: boolean = true;
+    public readonly isRyokoError: boolean = true
 
-    public options?: RyokoErrorOptions;
+    public config?: RyokoMergedConfig
+
+    public status?: number
 
     constructor(
         message?: any,
-        options?: RyokoErrorOptions
+        options: RyokoErrorOptions = {}
     ) {
         super(message);
-        this.options = options;
+        extend(this, options);
     }
 
     public toString() {
@@ -35,15 +38,13 @@ export default class RyokoError extends Error {
             stack,
             columnNumber,
             //Ryoko
-            options
+            config,
+            status, 
         } = this
 
-        const {
-            config, status
-        } = options as RyokoErrorOptions;
-
         return {
-            message, number, description, fileName, lineNumber, stack, columnNumber, name, config, status
+            message, number, description, fileName, lineNumber, stack, columnNumber, name,
+            config, status, 
         }
 
     }

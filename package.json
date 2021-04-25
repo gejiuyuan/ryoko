@@ -12,7 +12,7 @@
     "test": "jest --detectOpenHandles",
     "build:rollup": "rollup --config",
     "build:tsc": "npx tsc -p .",
-    "build": "npm run build:rollup && npm run build:tsc", 
+    "build": "npm run build:rollup && npm run build:tsc"
   },
   "keywords": [
     "ryoko",

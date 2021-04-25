@@ -1,7 +1,8 @@
 
+import { warn } from '@/helpers/warn';
 import { _globalThis } from '../helpers/constant';
 import RyokoError from '../helpers/ryokoError'
-import { is , isSupportAbortController} from '../shared/utils';
+import { is, isSupportAbortController } from '../shared/utils';
 
 
 /**
@@ -38,15 +39,17 @@ export default class RyokoAbortController {
             return;
         }
         if (Number.isNaN(timeout) || timeout < 0) {
-            throw new RyokoError(`the type of parameter 'timeout' is invalid!`)
+            warn(
+                `the type of parameter 'timeout' is invalid!`,
+                'TypeError'
+            )
         }
         this.abortTimer = setTimeout(() => {
-            const abortMsg = new RyokoError(
+            const abortMsg =
                 `The request duration exceeded the maximum limit of ${timeout} 
                     milliseconds and has been interrupted`
-            )
             this.setAbortMsg(abortMsg);
-            this.abortFetch(); 
+            this.abortFetch();
             cb(abortMsg);
         }, timeout)
     }

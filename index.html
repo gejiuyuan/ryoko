@@ -17,12 +17,12 @@
         const creator = AbortTokenizer.create();
 
         let anfrage = ryoko.create({
-            timeout: 10000,
-            onDefer() {
-                console.info(this)
+            timeout: 100,
+            onDefer(msg) {
+                console.info(msg, this)
             },
             downloadScheduler({ percent, total, received, buffer }) {
-                // console.info(percent, received, total , buffer )
+                console.info(percent, received, total , buffer )
             },
             fetch: fetch,
 
@@ -34,10 +34,13 @@
         })
         anfrage.interceptors.response.use((res) => {
             return res;
+        }, err => {
+            console.dir(err)
+            return err
         })
 
         anfrage.get('https://api.i-meto.com/meting/api', {
-            timeout: 800,
+            timeout: 80,
             params: {
                 server: 'netease',
                 type: 'lrc',
@@ -54,8 +57,11 @@
             abortToken: creator.token,
 
         }).then((res) => {
-            console.info(res)
+            console.dir(res, 'res')
+        }, err => {
+            console.dir(JSON.parse(err))
         })
+ 
 
         // anfrage({
         //     url: 'https://suprise.github.io/mobx-cn/fp.html',

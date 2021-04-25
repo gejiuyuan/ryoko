@@ -23,15 +23,15 @@ export const ryokoStreamDeliver = function (
 
     if (cb !== void 0) {
 
-        const dataLength = Number(headers.get(CONTENT_LENGTH)) || 0
         let dataReceivedLength = 0;
+        const dataLength = Number(headers.get(CONTENT_LENGTH)) || 0
+        let progressStreamReader: ReadableStreamDefaultReader<Uint8Array>
 
         const prgsReaderFn = (
             controller?: ReadableStreamController<any>
         ) => {
 
-            progressStream
-                .getReader()
+            progressStreamReader
                 .read()
                 .then(({ value, done }) => {
                     if (done) {
@@ -57,17 +57,19 @@ export const ryokoStreamDeliver = function (
 
             const teedStreams = resBody.tee();
             [returnStream, progressStream] = teedStreams;
+            progressStreamReader = progressStream.getReader()
             prgsReaderFn();
 
         } catch (err) {
 
             progressStream = resBody;
+            progressStreamReader = progressStream.getReader()
             returnStream = new _globalThis.ReadableStream({
                 start(controller) {
                     prgsReaderFn(controller)
                 }
             })
-            
+
         }
 
     } else {
