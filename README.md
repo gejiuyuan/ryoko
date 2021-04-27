@@ -88,8 +88,8 @@ ryoko({
 	//请求的url
 	url: '/guoxiaoyou',
 	
-	//prefixURL，请求url的前缀，默认：''空字符串
-	prefixURL: 'https://www.guoxiaoyou.cn',
+	//prefixUrl，请求url的前缀，默认：''空字符串
+	prefixUrl: 'https://www.guoxiaoyou.cn',
 	
 	//url查询参数，类型：String | PlainObject纯对象 | URLSearchParams
 	params: {
@@ -326,31 +326,37 @@ ryoko.get('/ddd', {
 
 <br>
 
+注意，data是根据传入的responseType才被处理后的响应数据，而source选项才是真正的fetch请求后的返回值。
+
+
+
 #### 取消请求控制 
 
 
 第一种是设置timeout，若请求超时，则自动终止，同时触发onDefer回调。此外，用户也可手动取消。如：
 
 ```
+import ryoko, { abortPendingRequest } from 'ryoko'
+
 //获取请求终止令牌器
 const AbortTokenizer = ryoko.AbortTokenizer;
 
 // 创建一个终止令牌
-const creator = AbortTokenizer.create();
+const creatorToken = AbortTokenizer.createToken();
 
 //再讲令牌token赋值给请求
 ryoko.get('/ddd', {
-	abortToken: creator.token
+	abortToken: creatorToken
 })
 
 //延迟120毫秒取消请求（如果该请求未完成）
 setTimeout(() => {
-	creator.stop()
+	abortPendingRequest(creatorToken)
 }, 120)
 
 ```
 
-上述代码可以看到，取消一个请求需经过三个步骤：首先拿到终止控制器（AbortTokenizer），然后通过create方法创建终止令牌creator，返回的token标识（一个Symbol值）需赋予请求的abortToken选项，后续调用stop方法便可取消对应请求。 
+上述代码可以看到，取消一个请求需经过三个步骤：首先拿到终止控制器（AbortTokenizer），然后通过createToken方法创建终止令牌标识（一个Symbol值），它需赋予请求的abortToken选项，后续借助调abortPendingRequest方法便可取消对应请求。 
 
 同样，该方法适用于取消多个请求场景。如： 
 
@@ -359,10 +365,10 @@ setTimeout(() => {
 ```
 
 const AbortTokenizer = ryoko.AbortTokenizer;
-const creator = AbortTokenizer.create();
+const creatorToken = AbortTokenizer.createToken();
 
 let afrange = ryoko.create({
-	abortToken: creator.token
+	abortToken: creatorToken
 })
 
 anfrage.get('/ddd', {
@@ -379,7 +385,7 @@ anfrage({
 
 //此时两个请求都将被取消（如果还没请求完成）
 setTimeout(() => {
-	creator.stop()
+	abortPendingRequest(createToken)
 }, 20)
 
 ```
@@ -387,25 +393,25 @@ setTimeout(() => {
 写法二：逐个添加abortToken 
 ```
 const AbortTokenizer = ryoko.AbortTokenizer;
-const creator = AbortTokenizer.create();
+const creatorToken = AbortTokenizer.createToken();
  
 ryoko.get('/ddd', {
 	params: {
 		age: 10
 	},
-	abortToken: creator.token
+	abortToken: creatorToken
 })
 
 ryoko({
 	method: 'post',
 	url: '/sss',
 	data: JSON.strigify({a:1,b:2}),
-	abortToken: creator.token
+	abortToken: creatorToken
 })
 
 //此时两个请求都将被取消（如果还没请求完成）
 setTimeout(() => {
-	creator.stop()
+	abortPendingRequest(createToken)
 }, 20)
 ```
 

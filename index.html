@@ -11,8 +11,8 @@
 <body>
 
     <script type="module">
- 
-        import ryoko, { abortPendingRequest , abortAllRequest } from './dist/ryoko.esm.js';
+
+        import ryoko, { abortPendingRequest } from './dist/ryoko.esm.js';
         const AbortTokenizer = ryoko.AbortTokenizer;
         const creatorToken = AbortTokenizer.createToken();
 
@@ -41,33 +41,35 @@
         })
 
         let o = new URLSearchParams()
-        o.append('server','netease' )
-        o.append('type','lrc' )
-        o.append('id', 2308499 )
-        o.append('auth','da2b901838c26e789182ebbd1c0618feb5a73551' )
+        o.append('server', 'netease')
+        o.append('type', 'lrc')
+        o.append('id', 2308499)
+        o.append('auth', 'da2b901838c26e789182ebbd1c0618feb5a73551')
 
-        // for (let i = 0; i < 3; i++) {
-            anfrage.get('/api', {
-                timeout: 80,
-                params: o,
-                responseType: 'text',
-                beforeRequest(config) {
 
-                },
-                afterResponse(res) {
+        anfrage.get('/api', {
+            timeout: 80,
+            params: o,
+            responseType: 'text',
+            beforeRequest(config) {
 
-                },
-                abortToken: creatorToken,
+            },
+            afterResponse(res) {
 
-            }).then((res) => {
-                console.info(res)
-                // console.info(res)
-            }).catch((err) => {
-                console.dir(err)
-            }) 
-        // }
+            },
+            abortToken: creatorToken,
 
-   
+        }).then((res) => {
+            console.info(res)
+            // console.info(res)
+        }).catch((err) => {
+            console.dir(err)
+        })
+
+        setTimeout(() => {
+            abortPendingRequest(creatorToken);
+        }, 10)
+
 
         // anfrage({
         //     url: 'https://suprise.github.io/mobx-cn/fp.html',

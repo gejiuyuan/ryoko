@@ -27,12 +27,30 @@ export const contentTypeReg =
         'i'
     );
 
+export const defaultMiMEMaps = {
+    'json': [
+        
+    ],
+    'text': [
+
+    ],
+    'blob': [
+
+    ],
+    'arrayBuffer': [
+
+    ],
+    'formData': [
+
+    ]
+}
+
 export default function getContentTypeVal(
     headersObj: PlainObject,
 ) {
     let matchedMIME = '';
     for (let [key, value] of Object.values(headersObj)) {
-        if (key.toLowerCase() === CONTENT_TYPE) { 
+        if (key.toLowerCase() === CONTENT_TYPE) {
             matchedMIME = value.match(contentTypeReg)?.[1] || '';
             break;
         }
