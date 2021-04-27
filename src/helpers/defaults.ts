@@ -6,7 +6,7 @@ import { _globalThis } from './constant';
 
 const defaultRyokoConfig: RyokoDefaultConfig = {
 
-    prefixURL: '',
+    prefixUrl: '',
 
     url: '',
 

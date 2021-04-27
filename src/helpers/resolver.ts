@@ -43,21 +43,21 @@ import { warn } from './warn';
  */
 
 export const resolveRyokoUrl = (
-    prefixURL: string,
+    prefixUrl: string,
     url: string,
     params?: RyokoParams
 ) => {
     url = decodeURIComponent(url);
-    prefixURL = decodeURIComponent(prefixURL).trim();
+    prefixUrl = decodeURIComponent(prefixUrl).trim();
     if (URLPATT.test(url)) {
-        if (prefixURL.length > 0) {
+        if (prefixUrl.length > 0) {
             warn(
                 `the combination of 'baseURL' and 'url' is invalid!`,
                 'URIError'
             )
         }
     } else {
-        url = `${prefixURL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
+        url = `${prefixUrl.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
     }
     if (params == void 0) {
         return url
@@ -131,7 +131,7 @@ export const resolveRyokoResponse = async (
     const { statusText, status, headers, } = res
     const headersObj = iteratorToObj(headers, true)
     const ryokoRes = {} as RyokoResponse
-    ryokoRes.source = res;
+    ryokoRes.source = res.clone();
     ryokoRes.status = status;
     ryokoRes.statusText = statusText;
     ryokoRes.headers = headersObj;

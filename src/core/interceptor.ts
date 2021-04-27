@@ -1,19 +1,19 @@
-import { 
-    RyokoConfig, 
+import {
+    RyokoConfig,
     InterceptorItem,
     InterceptorFn,
     InterceptorCtor,
 } from 'types'
- 
+
 /**
  * 拦截器 the interceptor of request method
  */
- 
+
 export default class Interceptor<T> implements InterceptorCtor<T> {
 
     public callbacks!: Array<InterceptorItem<T> | undefined>;
 
-    constructor() { 
+    constructor() {
         this.init();
     }
 
@@ -25,11 +25,11 @@ export default class Interceptor<T> implements InterceptorCtor<T> {
         onsuccess: (config: T) => any,
         onfailure: (config: T) => any
     ): number {
-        this.callbacks.push({
+        const length = this.callbacks.push({
             success: onsuccess,
             failure: onfailure
         });
-        return this.callbacks.length - 1;
+        return length - 1;
     }
 
     public eject(
@@ -43,8 +43,7 @@ export default class Interceptor<T> implements InterceptorCtor<T> {
     public traverse(
         fn: (item: InterceptorItem<T>) => void
     ): void {
-        this.callbacks.forEach(item => item != null && fn(item));
+        this.callbacks.forEach(item => item != void 0 && fn(item));
     }
 
 }
- 

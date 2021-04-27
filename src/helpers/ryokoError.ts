@@ -26,13 +26,13 @@ export default class RyokoError extends Error {
     public toJSON() {
 
         const {
-            //标准
+            //Standard
             message,
             name,
-            //微软
+            //MiscroSoft
             number,
             description,
-            //火狐
+            //FireFox
             fileName,
             lineNumber,
             stack,

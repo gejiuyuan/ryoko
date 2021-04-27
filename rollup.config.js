@@ -25,20 +25,24 @@ const configs = {
         file: `dist/${libName}.esm.js`,
         format: 'esm',// cjs iife umd amd es system
         name: libName,
+        exports: 'named',
         inlineDynamicImports: true,
     },
 
     'cjs': {
         file: `dist/${libName}.cjs.js`,
         format: 'cjs',
-        name: libName,
-        exports: 'default',
+        name: libName, 
+        //options：default（只能export default）、named（支持export和export default共存）、none（不需要export、export default时）
+        exports: 'named',
+
     },
 
     'umd': {
         file: `dist/${libName}.min.js`,
         format: 'umd',
         name: libName,
+        exports: 'named',
         plugins: [
             terser(),
         ],
@@ -66,7 +70,8 @@ const createBundleconf = (type) => ({
 
     external: [
 
-    ]
+    ],
+
 
 })
 

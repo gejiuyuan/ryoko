@@ -12,7 +12,9 @@ import {
 
 import { ryokoStreamDeliver } from './ryokoStreamDeliver'
 
-import RyokoAbortController from '../abort/abortController'
+import {
+    addAbortCallbacks
+} from '../abort/abortToken'
 
 import {
     resolveRyokoUrl,
@@ -35,6 +37,8 @@ import RyokoError from '../helpers/ryokoError'
 import AbortTokenizer from '../abort/abortToken'
 import { warn } from '@/helpers/warn'
 
+import RyokoAbortController from '../abort/abortController'
+
 export default function dispatchFetch(
     this: RyokoClass,
     config: RyokoMergedConfig
@@ -48,7 +52,7 @@ export default function dispatchFetch(
     }
     const cloneConfig = { ...config }
     let {
-        prefixURL,
+        prefixUrl,
         url,
         params,
         data,
@@ -59,22 +63,8 @@ export default function dispatchFetch(
         downloadScheduler,
         headers,
         fetch: RyokoFetch,
-        abortToken
+        abortToken,
     } = cloneConfig;
-
-    //fetch请求取消控制器
-    let abortCtrl = new RyokoAbortController();
-    const abortCb = (msg: any) => {
-        abortCtrl?.restoreAbortTimer();
-        abortCtrl?.setAbortMsg(msg);
-        abortCtrl?.abortFetch();
-    }
-
-    const { tokenStore } = AbortTokenizer;
-    const tarStore = tokenStore.get(abortToken as Symbol)
-    if (tarStore) {
-        tarStore.add(abortCb);
-    }
 
     //根据用户传入config，获取fetch的options
     let fetchConfig = {} as RequestInit
@@ -87,11 +77,19 @@ export default function dispatchFetch(
     });
 
     //获取请求url
-    const fetchUrl = resolveRyokoUrl(prefixURL, url, params);
+    const fetchUrl = resolveRyokoUrl(prefixUrl, url, params);
 
     //获取请求body
     const fetchBody = resolveRyokoBody(data)
     fetchBody && (fetchConfig.body = fetchBody);
+
+    //创建一个终止请求控制器
+    let abortCtrl = new RyokoAbortController()
+    //根据abortToken添加对应的手动终止请求函数
+    addAbortCallbacks(abortToken, function () {
+        abortCtrl?.restoreAbortTimer();
+        abortCtrl?.abortFetch();
+    })
 
     //存储abortber到该请求实例上 
     fetchConfig.signal = abortCtrl.singal;
@@ -128,7 +126,7 @@ export default function dispatchFetch(
 
                 const { body: resBody, status, } = res;
 
-                //将相应数据以流的形式传送处理
+                //将响应数据以流的形式传送处理
                 if (resBody != null) {
                     res = ryokoStreamDeliver.call(this, res, downloadScheduler)
                 }

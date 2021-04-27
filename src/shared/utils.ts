@@ -201,7 +201,7 @@ export const iteratorToObj = (
     iterator: IteratorObj<any>,
     lowerKey = false
 ) => {
-    let obj: PlainObject = Object.create(null)
+    let obj: PlainObject = {}
     for (let [key, value] of iterator.entries()) {
         const realKey = lowerKey ? key.toLowerCase() : key;
         obj[realKey] = value

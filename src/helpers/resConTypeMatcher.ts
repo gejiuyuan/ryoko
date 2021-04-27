@@ -30,19 +30,12 @@ export const contentTypeReg =
 export default function getContentTypeVal(
     headersObj: PlainObject,
 ) {
-    let conTypeVal = '',
-        isMatched = false,
-        matchedMIME = ''
-
+    let matchedMIME = '';
     for (let [key, value] of Object.values(headersObj)) {
-        if (key.toLowerCase() === CONTENT_TYPE) {
-            conTypeVal = value;
-            isMatched = true;
+        if (key.toLowerCase() === CONTENT_TYPE) { 
+            matchedMIME = value.match(contentTypeReg)?.[1] || '';
             break;
         }
-    }
-    if (isMatched) {
-        matchedMIME = conTypeVal.match(contentTypeReg)?.[1] || '';
     }
     return matchedMIME;
 }

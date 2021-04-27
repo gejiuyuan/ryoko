@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
@@ -155,7 +157,7 @@ const filterUselessKey = (obj) => {
     return obj;
 };
 const iteratorToObj = (iterator, lowerKey = false) => {
-    let obj = Object.create(null);
+    let obj = {};
     for (let [key, value] of iterator.entries()) {
         const realKey = lowerKey ? key.toLowerCase() : key;
         obj[realKey] = value;
@@ -174,11 +176,11 @@ class Interceptor {
         this.callbacks = [];
     }
     use(onsuccess, onfailure) {
-        this.callbacks.push({
+        const length = this.callbacks.push({
             success: onsuccess,
             failure: onfailure
         });
-        return this.callbacks.length - 1;
+        return length - 1;
     }
     eject(serie) {
         if (this.callbacks[serie]) {
@@ -186,12 +188,12 @@ class Interceptor {
         }
     }
     traverse(fn) {
-        this.callbacks.forEach(item => item != null && fn(item));
+        this.callbacks.forEach(item => item != void 0 && fn(item));
     }
 }
 
 const defaultRyokoConfig = {
-    prefixURL: '',
+    prefixUrl: '',
     url: '',
     timeout: 0,
     fetch: _globalThis.fetch,
@@ -257,6 +259,80 @@ const ryokoStreamDeliver = function (fetchRes, cb) {
     });
 };
 
+const defaultAbortMsg = 'The user aborted a request';
+/**
+ * 取消等待中的请求
+ * @param args
+ */
+function abortPendingRequest(...args) {
+    args = args.flat(Infinity);
+    const { length } = args;
+    if (length < 1) {
+        abortAllRequest();
+        return;
+    }
+    for (let i = 0; i < length; i++) {
+        abortOneRequest(args[i]);
+    }
+}
+/**
+ * 终止所有请求
+ */
+function abortAllRequest() {
+    const { tokenStore } = AbortTokenizer;
+    for (let symbolKey of tokenStore.keys()) {
+        abortOneRequest(symbolKey);
+    }
+}
+/**
+ * 终止指定请求
+ * @param tokenKey symbol标识
+ */
+function abortOneRequest(tokenKey) {
+    const { tokenStore } = AbortTokenizer;
+    const _tokenSet = tokenStore.get(tokenKey);
+    if (_tokenSet === void 0) {
+        return false;
+    }
+    for (let abortCb of _tokenSet) {
+        abortCb(defaultAbortMsg);
+    }
+    _tokenSet.clear();
+    tokenStore.delete(tokenKey);
+    return true;
+}
+/**
+ * 添加终止请求函数到store中，以便后续统一手动取消
+ * @param tokenKey 请求的abortToken属性
+ * @param cbs 终止执行的函数
+ * @returns
+ */
+function addAbortCallbacks(tokenKey, cbs) {
+    if (typeof cbs === 'function') {
+        cbs = [cbs];
+    }
+    if (tokenKey == void 0) {
+        return;
+    }
+    const { tokenStore } = AbortTokenizer;
+    let _tarTokenSet = tokenStore.get(tokenKey);
+    if (_tarTokenSet !== void 0) {
+        cbs.forEach(abortCb => _tarTokenSet.add(abortCb));
+    }
+    else {
+        tokenStore.set(tokenKey, new Set(cbs));
+    }
+}
+class AbortTokenizer {
+    static createToken() {
+        const { tokenStore, abortName } = AbortTokenizer;
+        const symbolKey = Symbol(abortName + tokenStore.size);
+        return symbolKey;
+    }
+}
+AbortTokenizer.abortName = 'RyokoAbortTokenizer';
+AbortTokenizer.tokenStore = new Map();
+
 class RyokoError extends Error {
     constructor(message, options = {}) {
         super(message);
@@ -269,11 +345,11 @@ class RyokoError extends Error {
     }
     toJSON() {
         const { 
-        //标准
+        //Standard
         message, name, 
-        //微软
+        //MiscroSoft
         number, description, 
-        //火狐
+        //FireFox
         fileName, lineNumber, stack, columnNumber, 
         //Ryoko
         config, status, } = this;
@@ -305,79 +381,21 @@ const warn = (msg, type = 'Error', options) => {
 };
 
 /**
- * ryoko取消控制器
- */
-class RyokoAbortController {
-    constructor() {
-        this.isAllow = false;
-        this.init();
-    }
-    init() {
-        isSupportAbortController && (this.isAllow = true);
-        this.initAborber();
-    }
-    deferAbort(timeout, cb) {
-        timeout = +timeout;
-        if (timeout === 0) {
-            return;
-        }
-        if (Number.isNaN(timeout) || timeout < 0) {
-            warn(`the type of parameter 'timeout' is invalid!`, 'TypeError');
-        }
-        this.abortTimer = setTimeout(() => {
-            const abortMsg = `The request duration exceeded the maximum limit of ${timeout} 
-                    milliseconds and has been interrupted`;
-            this.setAbortMsg(abortMsg);
-            this.abortFetch();
-            cb(abortMsg);
-        }, timeout);
-    }
-    initAborber() {
-        const controller = new AbortController();
-        const { signal } = controller;
-        this.controller = controller;
-        this.singal = signal;
-    }
-    setAbortMsg(abortMsg) {
-        this.abortMsg = abortMsg;
-    }
-    abortFetch() {
-        const { controller, isAllow, singal } = this;
-        isAllow && !singal.aborted && controller.abort();
-    }
-    abortState() {
-        const { isAllow, singal } = this;
-        return new Promise((resolve, reject) => {
-            if (isAllow && singal) {
-                singal.onabort = (ev) => {
-                    resolve(this.abortMsg);
-                };
-            }
-        });
-    }
-    restoreAbortTimer() {
-        const serial = clearTimeout(this.abortTimer);
-        this.abortTimer = null;
-        return serial;
-    }
-}
-
-/**
  * 生成fetch url
  * @param url 链接地址 string
  * @param params 查询参数 string | PlainObject<string>
  * @returns
  */
-const resolveRyokoUrl = (prefixURL, url, params) => {
+const resolveRyokoUrl = (prefixUrl, url, params) => {
     url = decodeURIComponent(url);
-    prefixURL = decodeURIComponent(prefixURL).trim();
+    prefixUrl = decodeURIComponent(prefixUrl).trim();
     if (URLPATT.test(url)) {
-        if (prefixURL.length > 0) {
+        if (prefixUrl.length > 0) {
             warn(`the combination of 'baseURL' and 'url' is invalid!`, 'URIError');
         }
     }
     else {
-        url = `${prefixURL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+        url = `${prefixUrl.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
     }
     if (params == void 0) {
         return url;
@@ -428,7 +446,7 @@ const resolveRyokoResponse = (res, config) => __awaiter(void 0, void 0, void 0, 
     const { statusText, status, headers, } = res;
     const headersObj = iteratorToObj(headers, true);
     const ryokoRes = {};
-    ryokoRes.source = res;
+    ryokoRes.source = res.clone();
     ryokoRes.status = status;
     ryokoRes.statusText = statusText;
     ryokoRes.headers = headersObj;
@@ -437,28 +455,99 @@ const resolveRyokoResponse = (res, config) => __awaiter(void 0, void 0, void 0, 
     return ryokoRes;
 });
 
-class AbortTokenizer {
-    static create() {
-        const { tokenStore, abortName } = AbortTokenizer;
-        const symbolKey = Symbol(abortName + tokenStore.size);
-        const _tokenSet = new Set();
-        tokenStore.set(symbolKey, _tokenSet);
-        return {
-            stop(msg) {
-                for (let abortCb of _tokenSet) {
-                    abortCb(msg);
-                }
-                queueMicrotask(() => {
-                    _tokenSet.clear();
-                    tokenStore.delete(symbolKey);
-                });
-            },
-            token: symbolKey
-        };
+/**
+ * ryoko取消控制器
+ */
+class RyokoAbortController {
+    constructor() {
+        /**
+         * 是否支持AbortController
+         */
+        this.isAllow = false;
+        /**
+         * 是否已终止该请求
+         */
+        this.aborted = false;
+        /**
+         * 是否是超时才终止请求的
+         */
+        this.isDefer = false;
+        this.init();
+    }
+    init() {
+        isSupportAbortController && (this.isAllow = true);
+        this.initAborber();
+    }
+    /**
+     * 延时终止请求
+     * @param timeout 延时
+     * @param cb 延时回调
+     * @returns void
+     */
+    deferAbort(timeout, cb) {
+        timeout = +timeout;
+        if (timeout === 0) {
+            return;
+        }
+        if (Number.isNaN(timeout) || timeout < 0) {
+            warn(`the type of parameter 'timeout' is invalid!`, 'TypeError');
+        }
+        this.abortTimer = setTimeout(() => {
+            const abortMsg = `The request duration exceeded the maximum limit of ${timeout} 
+                    milliseconds and has been interrupted`;
+            this.setAbortMsg(abortMsg);
+            this.isDefer = true;
+            this.abortFetch();
+            cb && cb(abortMsg);
+        }, timeout);
+    }
+    /**
+     * 初始化终止控制器
+     */
+    initAborber() {
+        const controller = new AbortController();
+        const { signal } = controller;
+        this.controller = controller;
+        this.singal = signal;
+    }
+    /**
+     * 设置终止提示信息
+     * @param abortMsg 终止信息
+     */
+    setAbortMsg(abortMsg) {
+        this.abortMsg = abortMsg;
+    }
+    /**
+     * 手动终止请求
+     */
+    abortFetch() {
+        const { controller, isAllow, singal } = this;
+        isAllow && !this.aborted && controller.abort();
+    }
+    /**
+     * 监听请求终止状态
+     *
+     */
+    abortState() {
+        const { isAllow, singal } = this;
+        return new Promise((resolve, reject) => {
+            if (isAllow && singal) {
+                singal.onabort = (ev) => {
+                    this.aborted = true;
+                    resolve(this.abortMsg);
+                };
+            }
+        });
+    }
+    /**
+     * 清除延迟终止定时器
+     */
+    restoreAbortTimer() {
+        const serial = clearTimeout(this.abortTimer);
+        this.abortTimer = null;
+        return serial;
     }
 }
-AbortTokenizer.abortName = 'ryokoToken';
-AbortTokenizer.tokenStore = new Map();
 
 function dispatchFetch(config) {
     //如果未在拦截器中返回config配置，则抛出错误
@@ -466,19 +555,7 @@ function dispatchFetch(config) {
         warn(`The request 'config' is invalid, is it returned in the request interceptor?`, 'RyokoError');
     }
     const cloneConfig = Object.assign({}, config);
-    let { prefixURL, url, params, data, timeout, method, onDefer, verifyStatus, downloadScheduler, headers, fetch: RyokoFetch, abortToken } = cloneConfig;
-    //fetch请求取消控制器
-    let abortCtrl = new RyokoAbortController();
-    const abortCb = (msg) => {
-        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.restoreAbortTimer();
-        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.setAbortMsg(msg || '');
-        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.abortFetch();
-    };
-    const { tokenStore } = AbortTokenizer;
-    const tarStore = tokenStore.get(abortToken);
-    if (tarStore) {
-        tarStore.add(abortCb);
-    }
+    let { prefixUrl, url, params, data, timeout, method, onDefer, verifyStatus, downloadScheduler, headers, fetch: RyokoFetch, abortToken, } = cloneConfig;
     //根据用户传入config，获取fetch的options
     let fetchConfig = {};
     const configKeys = Object.keys(cloneConfig);
@@ -489,26 +566,38 @@ function dispatchFetch(config) {
         }
     });
     //获取请求url
-    const fetchUrl = resolveRyokoUrl(prefixURL, url, params);
+    const fetchUrl = resolveRyokoUrl(prefixUrl, url, params);
     //获取请求body
     const fetchBody = resolveRyokoBody(data);
     fetchBody && (fetchConfig.body = fetchBody);
+    //创建一个终止请求控制器
+    let abortCtrl = new RyokoAbortController();
+    //根据abortToken添加对应的手动终止请求函数
+    addAbortCallbacks(abortToken, function () {
+        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.restoreAbortTimer();
+        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.abortFetch();
+    });
     //存储abortber到该请求实例上 
     fetchConfig.signal = abortCtrl.singal;
-    abortCtrl.deferAbort(timeout, abortMsg => {
-        onDefer && onDefer.call(this, abortMsg);
-    });
+    //添加超时终止请求处理
+    abortCtrl.deferAbort(timeout);
     return new Promise((resolve, reject) => {
         //监听取消控制器的终止请求状态
         abortCtrl.abortState().then((abortMsg) => {
-            reject(abortMsg);
+            //如果是超时终止的请求，则执行
+            if (abortCtrl.isDefer) {
+                onDefer && onDefer.call(this, cloneConfig);
+                reject(new RyokoError(abortMsg, {
+                    config: cloneConfig
+                }));
+            }
         });
         RyokoFetch(fetchUrl, fetchConfig).then(res => {
             // 取消abort定时器
             abortCtrl.restoreAbortTimer();
             abortCtrl = null; //!作用是告知ts强制转null为RyokoAbortController类型
             const { body: resBody, status, } = res;
-            //将相应数据以流的形式传送处理
+            //将响应数据以流的形式传送处理
             if (resBody != null) {
                 res = ryokoStreamDeliver.call(this, res, downloadScheduler);
             }
@@ -523,6 +612,9 @@ function dispatchFetch(config) {
                 config: cloneConfig
             }));
         }, err => {
+            if (abortCtrl.aborted)
+                return;
+            //如果不是超时和用户手动取消请求的就走这一步(如服务器错误、网络错误等)
             const status = err === null || err === void 0 ? void 0 : err.status;
             const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
             reject(new RyokoError(errMsg, {
@@ -614,6 +706,11 @@ ryokoMethods.forEach((method, i) => {
     });
 });
 
+/**
+ * 创建Ryoko实例
+ * @param insConfig 实例初始化配置
+ * @returns 返回Ryoko请求实例
+ */
 function createInstance(insConfig = {}) {
     const ctx = new Ryoko(insConfig);
     const ins = ctx.request.bind(ctx);
@@ -628,4 +725,7 @@ ryoko.create = (insConfig) => createInstance(insConfig);
 ryoko.all = (promises) => Promise.all(promises);
 ryoko.spread = (callback) => (promisesArr) => callback.apply(null, promisesArr);
 
-module.exports = ryoko;
+exports.abortAllRequest = abortAllRequest;
+exports.abortOneRequest = abortOneRequest;
+exports.abortPendingRequest = abortPendingRequest;
+exports.default = ryoko;

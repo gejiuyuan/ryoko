@@ -4,7 +4,7 @@ import { _globalThis } from '../helpers/constant';
 import RyokoError from '../helpers/ryokoError'
 import { is, isSupportAbortController } from '../shared/utils';
 
-
+ 
 /**
  * ryoko取消控制器
  */

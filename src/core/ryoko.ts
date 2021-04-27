@@ -25,7 +25,7 @@ import dispatchFetch from './dispatchFetch'
 import { ryokoMethods } from '../helpers/constant'
 import mergeRyokoConfig from '../helpers/mergeConfig'
 
-
+ 
 // a request method based on the native fetch api
 
 export default class Ryoko {
@@ -50,7 +50,7 @@ export default class Ryoko {
 
     constructor(
         config: RyokoConfig
-    ) { 
+    ) {
         this.defaults = extend({}, config, defaultRyokoConfig) as RyokoMergedConfig;
         this.interceptors = {
             request: new Interceptor(),
@@ -62,7 +62,7 @@ export default class Ryoko {
         config: RyokoConfig
     ): Promise<RyokoResponse> {
         const mergedConfig = mergeRyokoConfig(this.defaults, config);
-
+        
         const { beforeRequest, afterResponse } = mergedConfig;
 
         const promisesQueueBefore: InterceptorFn<RyokoConfig>[] = [],
@@ -114,7 +114,7 @@ ryokoMethods.forEach((method, i) => {
         method,
         function (
             this: RyokoClass | RyokoInstance,
-            url: string, 
+            url: string,
             config?: RyokoConfig
         ) {
             const endConfig = override({}, config, { method, url, });
@@ -122,7 +122,7 @@ ryokoMethods.forEach((method, i) => {
                 typeof this === 'function'
                     ? this(endConfig)
                     : this.request.call(this, endConfig)
-            ); 
+            );
         })
 });
 

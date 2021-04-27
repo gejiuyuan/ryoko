@@ -8,21 +8,22 @@
     <title>ryoko</title>
 </head>
 
-<body> 
-    
-    <script type="module">
+<body>
 
-        import ryoko from './dist/ryoko.esm.js';
+    <script type="module">
+ 
+        import ryoko, { abortPendingRequest , abortAllRequest } from './dist/ryoko.esm.js';
         const AbortTokenizer = ryoko.AbortTokenizer;
-        const creator = AbortTokenizer.create();
+        const creatorToken = AbortTokenizer.createToken();
 
         let anfrage = ryoko.create({
-            timeout: 100,
-            onDefer(msg) {
-                console.info(msg, this)
+            prefixUrl: 'https://api.i-meto.com/meting/',
+            timeout: 1000,
+            onDefer(config) {
+                // console.info(config)
             },
             downloadScheduler({ percent, total, received, buffer }) {
-                console.info(percent, received, total , buffer )
+                // console.info(percent, received, total, buffer)
             },
             fetch: fetch,
 
@@ -30,37 +31,43 @@
 
 
         anfrage.interceptors.request.use((config) => {
+            console.info(config)
             return config;
         })
         anfrage.interceptors.response.use((res) => {
             return res;
-        }, err => { 
+        }, err => {
             return err
         })
 
-        anfrage.get('https://api.i-meto.com/meting/api', {
-            timeout: 80,
-            params: {
-                server: 'netease',
-                type: 'lrc',
-                id: 2308499,
-                auth: 'da2b901838c26e789182ebbd1c0618feb5a73551'
-            },
-            responseType: 'text',
-            beforeRequest(config) {
+        let o = new URLSearchParams()
+        o.append('server','netease' )
+        o.append('type','lrc' )
+        o.append('id', 2308499 )
+        o.append('auth','da2b901838c26e789182ebbd1c0618feb5a73551' )
 
-            },
-            afterResponse(res) {
-            
-            },
-            abortToken: creator.token,
+        // for (let i = 0; i < 3; i++) {
+            anfrage.get('/api', {
+                timeout: 80,
+                params: o,
+                responseType: 'text',
+                beforeRequest(config) {
 
-        }).then((res) => {
-            console.dir(res, 'res')
-        }, err => {
-            console.dir(JSON.parse(err))
-        })
- 
+                },
+                afterResponse(res) {
+
+                },
+                abortToken: creatorToken,
+
+            }).then((res) => {
+                console.info(res)
+                // console.info(res)
+            }).catch((err) => {
+                console.dir(err)
+            }) 
+        // }
+
+   
 
         // anfrage({
         //     url: 'https://suprise.github.io/mobx-cn/fp.html',
@@ -69,7 +76,7 @@
         //     },
         //     afterResponse(res) {
         //     },
-        //     abortToken: creator.token,
+        //     abortToken: creatorToken,
         // })
 
         // anfrage({
@@ -81,9 +88,6 @@
         //     },
         // })
 
-        // setTimeout(() => {
-        //     creator.stop()
-        // }, 50)
 
         // ryoko.get('https://suprise.github.io/mobx-cn/fp.html').then(res => {
         //     return res.data.text()

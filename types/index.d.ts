@@ -41,7 +41,7 @@ export interface RyokoConfig extends Pick<RequestInit, FetchInitKeys> {
 
     fetch?: typeof fetch;
 
-    prefixURL?: string;
+    prefixUrl?: string;
 
     url?: string;
 
@@ -68,6 +68,8 @@ export interface RyokoConfig extends Pick<RequestInit, FetchInitKeys> {
     afterResponse?: (res: RyokoResponse) => void;
 
     abortToken?: Symbol;
+
+    readonly uid?: Symbol;
 
 }
 
@@ -115,9 +117,9 @@ export interface RyokoInstance extends RyokoClass {
     (c: RyokoConfig): Promise<any>
 }
 
-export type TokenStoreKey = Symbol;
+export type TokenStoreKey = any;
 
-export type TokenStoreSpace = Set<(msg?: any) => void>;
+export type TokenStoreSpace = Set<Function>;
  
 export interface RyokoNativeFn extends RyokoInstance {
     Ryoko: typeof Ryoko;
@@ -130,7 +132,7 @@ export interface RyokoNativeFn extends RyokoInstance {
 export type VerifyStatus = (status: number | string) => boolean
 
 export type RyokoDefaultConfigKeys =
-    'prefixURL' | 'url' | 'method' | 'timeout' | 'onDefer' | 'responseType' |
+    'prefixUrl' | 'url' | 'method' | 'timeout' | 'onDefer' | 'responseType' |
     'verifyStatus' | 'fetch' | 'beforeRequest' | 'afterResponse' | 'credentials'
 
 export type RyokoDefaultConfig =
@@ -179,7 +181,9 @@ export class RyokoAbortController {
     abortMsg: any;
     constructor();
     private init;
-    deferAbort(timeout: number, cb: (msg?: any) => void): void;
+    isDefer: boolean;
+    aborted: boolean;
+    deferAbort(timeout: number, cb?: (msg?: any) => void): void;
     private initAborber;
     setAbortMsg(abortMsg: any): void;
     abortFetch(): void;
@@ -190,10 +194,8 @@ export class RyokoAbortController {
 export class AbortTokenizer {
     static abortName: string;
     static tokenStore: Map<Symbol, TokenStoreSpace>;
-    static create(): {
-        stop(msg?: any): void;
-        token: symbol;
-    };
+    static createToken(): symbol;
+    
 }
 
 export function dispatchFetch(this: RyokoClass, config: RyokoMergedConfig): Promise<RyokoResponse>;
