@@ -1,28 +1,3 @@
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
 const _globalThis = globalThis !== void 0
     ? globalThis
     : self !== void 0
@@ -101,7 +76,7 @@ function extend(target, ...source) {
     }
     return extendCore(target, merged);
 }
-const toString = Object.prototype.toString;
+const { toString } = Object.prototype;
 const typeOf = (ins) => toString.call(ins).slice(8, -1);
 const is = [
     'String', 'Number', 'Undefined',
@@ -201,6 +176,31 @@ const defaultRyokoConfig = {
     afterResponse: noop,
     credentials: 'same-origin',
 };
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
 
 const ryokoStreamDeliver = function (fetchRes, cb) {
     const { body, status, statusText, headers } = fetchRes;
@@ -517,7 +517,7 @@ class RyokoAbortController {
      * 手动终止请求
      */
     abortFetch() {
-        const { controller, isAllow, singal } = this;
+        const { controller, isAllow } = this;
         isAllow && !this.aborted && controller.abort();
     }
     /**
@@ -550,15 +550,23 @@ function dispatchFetch(config) {
     if (Object(config) !== config) {
         warn(`The request 'config' is invalid, is it returned in the request interceptor?`, 'RyokoError');
     }
-    const cloneConfig = Object.assign({}, config);
-    let { prefixUrl, url, params, data, timeout, method, onDefer, verifyStatus, downloadScheduler, headers, fetch: RyokoFetch, abortToken, } = cloneConfig;
+    //请求前钩子
+    config.beforeRequest.call(this, config);
+    //创建一个终止请求控制器
+    let abortCtrl = new RyokoAbortController();
+    //根据abortToken添加对应的手动终止请求函数
+    addAbortCallbacks(config.abortToken, function () {
+        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.restoreAbortTimer();
+        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.abortFetch();
+    });
+    let { prefixUrl, url, params, data, timeout, method, onDefer, verifyStatus, downloadScheduler, headers, fetch: ryokoFetch, } = config;
     //根据用户传入config，获取fetch的options
-    let fetchConfig = {};
-    const configKeys = Object.keys(cloneConfig);
+    const fetchConfig = {};
+    const configKeys = Object.keys(config);
     fetchCodeOptionKeys.forEach(key => {
         if (configKeys.includes(key)) {
             fetchConfig[key] =
-                cloneConfig[key];
+                config[key];
         }
     });
     //获取请求url
@@ -566,13 +574,6 @@ function dispatchFetch(config) {
     //获取请求body
     const fetchBody = resolveRyokoBody(data);
     fetchBody && (fetchConfig.body = fetchBody);
-    //创建一个终止请求控制器
-    let abortCtrl = new RyokoAbortController();
-    //根据abortToken添加对应的手动终止请求函数
-    addAbortCallbacks(abortToken, function () {
-        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.restoreAbortTimer();
-        abortCtrl === null || abortCtrl === void 0 ? void 0 : abortCtrl.abortFetch();
-    });
     //存储abortber到该请求实例上 
     fetchConfig.signal = abortCtrl.singal;
     //添加超时终止请求处理
@@ -582,13 +583,11 @@ function dispatchFetch(config) {
         abortCtrl.abortState().then((abortMsg) => {
             //如果是超时终止的请求，则执行
             if (abortCtrl.isDefer) {
-                onDefer && onDefer.call(this, cloneConfig);
-                reject(new RyokoError(abortMsg, {
-                    config: cloneConfig
-                }));
+                onDefer && onDefer.call(this, config);
+                reject(new RyokoError(abortMsg, { config: config }));
             }
         });
-        RyokoFetch(fetchUrl, fetchConfig).then(res => {
+        ryokoFetch(fetchUrl, fetchConfig).then((res) => __awaiter(this, void 0, void 0, function* () {
             // 取消abort定时器
             abortCtrl.restoreAbortTimer();
             abortCtrl = null; //!作用是告知ts强制转null为RyokoAbortController类型
@@ -597,26 +596,22 @@ function dispatchFetch(config) {
             if (resBody != null) {
                 res = ryokoStreamDeliver.call(this, res, downloadScheduler);
             }
-            const RyokoRes = resolveRyokoResponse(res, cloneConfig);
+            const RyokoRes = yield resolveRyokoResponse(res, config);
             // 验证status状态码
             const isSuccess = verifyStatus(status);
             if (isSuccess) {
                 resolve(RyokoRes);
+                //响应后钩子
+                config.afterResponse.call(this, RyokoRes);
             }
-            reject(new RyokoError(`The status of the Ryoko request response is ${status}`, {
-                status,
-                config: cloneConfig
-            }));
-        }, err => {
+            reject(new RyokoError(`The status of the Ryoko request response is ${status}`, { status, config }));
+        }), err => {
             if (abortCtrl.aborted)
                 return;
             //如果不是超时和用户手动取消请求的就走这一步(如服务器错误、网络错误等)
             const status = err === null || err === void 0 ? void 0 : err.status;
             const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
-            reject(new RyokoError(errMsg, {
-                status,
-                config: cloneConfig
-            }));
+            reject(new RyokoError(errMsg, { status, config }));
         });
     });
 }
@@ -661,7 +656,6 @@ class Ryoko {
     }
     request(config) {
         const mergedConfig = mergeRyokoConfig(this.defaults, config);
-        const { beforeRequest, afterResponse } = mergedConfig;
         const promisesQueueBefore = [], promisesQueueAfter = [];
         this.interceptors.request.traverse((interceptor) => {
             promisesQueueBefore.push(interceptor.success, interceptor.failure);
@@ -669,24 +663,29 @@ class Ryoko {
         this.interceptors.response.traverse((interceptor) => {
             promisesQueueAfter.push(interceptor.success, interceptor.failure);
         });
-        let prePromise = Promise.resolve(mergedConfig);
+        let actualMergedConfig = mergedConfig;
+        let syncEndPromise;
         while (promisesQueueBefore.length) {
-            prePromise = prePromise.then(promisesQueueBefore.shift(), promisesQueueBefore.shift());
+            const requestInterceptor = promisesQueueBefore.shift();
+            const responseInterceptor = promisesQueueBefore.shift();
+            try {
+                actualMergedConfig = requestInterceptor(mergedConfig);
+            }
+            catch (err) {
+                responseInterceptor(err);
+                break;
+            }
         }
-        prePromise = prePromise.then((config) => __awaiter(this, void 0, void 0, function* () {
-            yield beforeRequest.call(this, config);
-            return config;
-        }));
-        const corePromise = prePromise.then(dispatchFetch.bind(this), void 0);
-        let endPromise = corePromise;
-        endPromise = endPromise.then((response) => __awaiter(this, void 0, void 0, function* () {
-            yield afterResponse.call(this, response);
-            return response;
-        }));
+        try {
+            syncEndPromise = dispatchFetch.call(this, actualMergedConfig);
+        }
+        catch (err) {
+            return Promise.reject(err);
+        }
         while (promisesQueueAfter.length) {
-            endPromise = endPromise.then(promisesQueueAfter.shift(), promisesQueueAfter.shift());
+            syncEndPromise = syncEndPromise.then(promisesQueueAfter.shift(), promisesQueueAfter.shift());
         }
-        return endPromise;
+        return syncEndPromise;
     }
 }
 //默认class定义的类的原型方法不能枚举

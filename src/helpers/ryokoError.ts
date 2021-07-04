@@ -1,5 +1,5 @@
-import { extend } from "@/shared/utils";
-import { RyokoMergedConfig, RyokoErrorOptions } from "types";
+import { extend } from "../shared/utils";
+import { RyokoMergedConfig, RyokoErrorOptions } from "../types";
 
 export default class RyokoError extends Error {
 

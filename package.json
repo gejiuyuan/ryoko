@@ -1,14 +1,15 @@
 {
   "name": "ryoko",
-  "version": "0.1.50",
+  "version": "0.1.52",
   "description": "a requestion lib based on the fetch native api",
   "main": "dist/ryoko.cjs.js",
-  "types": "types/index.d.ts",
-  "module": "lib/index.js",
+  "types": "dist/types/index.d.ts",
+  "module": "dist/ryoko.esm.js",
   "jsdelivr": "dist/ryoko.min.js",
   "unpkg": "dist/ryoko.min.js",
   "scripts": {
-    "format": "npx prettier -w './**/*.(t|j)s'",
+    "format": "npx prettier --write src/**/*.ts",
+    "format:check": "npx prettier --check src/**/*.ts",
     "test": "jest --detectOpenHandles",
     "build:rollup": "rollup --config",
     "build:tsc": "npx tsc -p .",
@@ -34,8 +35,6 @@
   ],
   "files": [
     "dist",
-    "lib",
-    "types",
     "global.d.ts"
   ],
   "repository": {

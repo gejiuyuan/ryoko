@@ -3,7 +3,7 @@ import {
     InterceptorItem,
     InterceptorFn,
     InterceptorCtor,
-} from 'types'
+} from '../types'
 
 /**
  * 拦截器 the interceptor of request method

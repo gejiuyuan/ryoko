@@ -17,7 +17,7 @@ import {
     RyokoDefaultConfig,
     RyokoReqMethods,
     RyokoClassQuickFn,
-} from 'types';
+} from '../types';
 
 import Interceptor from './interceptor'
 import defaultRyokoConfig from '../helpers/defaults'
@@ -25,7 +25,7 @@ import dispatchFetch from './dispatchFetch'
 import { ryokoMethods } from '../helpers/constant'
 import mergeRyokoConfig from '../helpers/mergeConfig'
 
- 
+
 // a request method based on the native fetch api
 
 export default class Ryoko {
@@ -62,8 +62,6 @@ export default class Ryoko {
         config: RyokoConfig
     ): Promise<RyokoResponse> {
         const mergedConfig = mergeRyokoConfig(this.defaults, config);
-        
-        const { beforeRequest, afterResponse } = mergedConfig;
 
         const promisesQueueBefore: InterceptorFn<RyokoConfig>[] = [],
             promisesQueueAfter: InterceptorFn<RyokoResponse>[] = [];
@@ -76,29 +74,43 @@ export default class Ryoko {
             promisesQueueAfter.push(interceptor.success, interceptor.failure);
         });
 
-        let prePromise = Promise.resolve(mergedConfig);
-        while (promisesQueueBefore.length) {
-            prePromise = prePromise.then(promisesQueueBefore.shift(), promisesQueueBefore.shift())
+        let synchronous = true;
+
+        if (!synchronous) {
+            let prePromise = Promise.resolve(mergedConfig);
+            while (promisesQueueBefore.length) {
+                prePromise = prePromise.then(promisesQueueBefore.shift(), promisesQueueBefore.shift())
+            }
+            const corePromise = prePromise.then(dispatchFetch.bind(this), void 0);
+            let endPromise = corePromise;
+            while (promisesQueueAfter.length) {
+                endPromise = endPromise.then(promisesQueueAfter.shift(), promisesQueueAfter.shift());
+            };
+            return endPromise;
         }
 
-        prePromise = prePromise.then(async (config) => {
-            await beforeRequest.call(this, config);
-            return config;
-        });
-
-        const corePromise = prePromise.then(dispatchFetch.bind(this), void 0);
-
-        let endPromise = corePromise;
-        endPromise = endPromise.then(async (response) => {
-            await afterResponse.call(this, response);
-            return response
-        });
+        let actualMergedConfig = mergedConfig;
+        let syncEndPromise: Promise<RyokoResponse>;
+        while (promisesQueueBefore.length) {
+            const requestInterceptor = promisesQueueBefore.shift()!;
+            const responseInterceptor = promisesQueueBefore.shift()!;
+            try {
+                actualMergedConfig = requestInterceptor(mergedConfig);
+            } catch (err) {
+                responseInterceptor(err);
+                break;
+            }
+        }
+        try {
+            syncEndPromise = dispatchFetch.call(this, actualMergedConfig);
+        } catch (err) {
+            return Promise.reject(err);
+        }
 
         while (promisesQueueAfter.length) {
-            endPromise = endPromise.then(promisesQueueAfter.shift(), promisesQueueAfter.shift());
-        };
-
-        return endPromise;
+            syncEndPromise = syncEndPromise.then(promisesQueueAfter.shift(), promisesQueueAfter.shift());
+        }
+        return syncEndPromise;
     }
 
 }

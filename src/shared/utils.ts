@@ -2,7 +2,7 @@ import {
     PlainObject,
     RyokoAppendBody,
     RyokoAppendBodySource,
-} from "types";
+} from "../types";
 
 import { fetchBodyAppendDataTypes, _globalThis } from '../helpers/constant'
 
@@ -61,7 +61,7 @@ export function extend(
     return extendCore(target, merged);
 }
 
-const toString = Object.prototype.toString;
+const { toString } = Object.prototype;
 
 export const typeOf = (ins: any): string =>
     toString.call(ins).slice(8, -1);
@@ -170,24 +170,7 @@ export const encode = (
         replace(/%5B/gi, '[').
         replace(/%5D/gi, ']');
 }
-
-export const getURLDescriptors = (
-    url: string
-) => {
-    const {
-        hash,
-        host,
-        hostname,
-        href,
-        origin,
-        pathname,
-        port,
-        protocol,
-        search,
-    } = new URL(url);
-    return { hash, host, hostname, href, origin, pathname, port, protocol, search }
-}
-
+ 
 export const filterUselessKey = (
     obj: PlainObject<any>
 ) => {

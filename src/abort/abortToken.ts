@@ -1,14 +1,10 @@
-
-import { warn } from '@/helpers/warn';
-import { config } from 'node:process';
 import {
     RyokoMergedConfig,
     TokenStoreKey,
     TokenStoreSpace
-} from 'types';
+} from '../types';
 
-const defaultAbortMsg = 'The user aborted a request'
- 
+const defaultAbortMsg = 'The user aborted a request';
 
 /**
  * 取消等待中的请求
@@ -22,7 +18,7 @@ export function abortPendingRequest(
     const { length } = args;
     if (length < 1) {
         abortAllRequest();
-        return
+        return;
     }
     for (let i = 0; i < length; i++) {
         abortOneRequest(args[i] as TokenStoreKey);
@@ -34,9 +30,9 @@ export function abortPendingRequest(
  * 终止所有请求
  */
 export function abortAllRequest() {
-    const { tokenStore } = AbortTokenizer
+    const { tokenStore } = AbortTokenizer;
     for (let symbolKey of tokenStore.keys()) {
-        abortOneRequest(symbolKey)
+        abortOneRequest(symbolKey);
     }
 }
 
@@ -45,10 +41,10 @@ export function abortAllRequest() {
  * @param tokenKey symbol标识
  */
 export function abortOneRequest(tokenKey: TokenStoreKey) {
-    const { tokenStore } = AbortTokenizer
+    const { tokenStore } = AbortTokenizer;
     const _tokenSet = tokenStore.get(tokenKey);
     if (_tokenSet === void 0) {
-        return false
+        return false;
     }
     for (let abortCb of _tokenSet) {
         abortCb(defaultAbortMsg);
@@ -69,23 +65,23 @@ export function addAbortCallbacks(
     cbs: Function | Array<Function>
 ) {
     if (typeof cbs === 'function') {
-        cbs = [cbs]
+        cbs = [cbs];
     }
     if (tokenKey == void 0) {
-        return
+        return;
     }
     const { tokenStore } = AbortTokenizer;
     let _tarTokenSet = tokenStore.get(tokenKey) as TokenStoreSpace
     if (_tarTokenSet !== void 0) {
         cbs.forEach(abortCb => _tarTokenSet.add(abortCb));
     } else {
-        tokenStore.set(tokenKey, new Set(cbs))
+        tokenStore.set(tokenKey, new Set(cbs));
     }
 }
 
 export default class AbortTokenizer {
 
-    static abortName = 'RyokoAbortTokenizer';
+    static readonly abortName = 'RyokoAbortTokenizer';
 
     static tokenStore = new Map<TokenStoreKey, TokenStoreSpace>();
 

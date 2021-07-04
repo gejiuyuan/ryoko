@@ -6,6 +6,6 @@ src
 test
 __tests__
 jest.config.js
-rollupconfig.js
+rollup.config.js
 index.html
 .babelrc

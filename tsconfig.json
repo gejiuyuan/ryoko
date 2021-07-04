@@ -3,19 +3,18 @@
 		"target": "es2015", //rollup目标编译es版本
 		"module": "esnext",
 		"lib": ["DOM", "esnext"],
-		"outDir": "lib",
+		"outDir": "dist/lib",
 		"rootDir": "src",
 		"baseUrl": "./",
 		"paths": {
-			"@/*": ["./src/*"],
-			"types/*": ["./types/*"]
+			 
 		},
-		// "declaration": true,
-		// "declarationDir": "types",
+		"declaration": true,
+		"declarationDir": "dist/types",
 		// "declarationMap": true,
 		// "sourceMap": true,
 		"downlevelIteration": true,
-		// "isolatedModules": true,
+		"isolatedModules": true,
 		"strict": true,
 		"moduleResolution": "node",
 		"esModuleInterop": true,

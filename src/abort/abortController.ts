@@ -1,5 +1,5 @@
 
-import { warn } from '@/helpers/warn';
+import { warn } from '../helpers/warn';
 import { _globalThis } from '../helpers/constant';
 import RyokoError from '../helpers/ryokoError'
 import { is, isSupportAbortController } from '../shared/utils';
@@ -52,7 +52,7 @@ export default class RyokoAbortController {
 
     private init() {
         isSupportAbortController && (this.isAllow = true);
-        this.initAborber()
+        this.initAborber();
     }
 
     /**
@@ -110,7 +110,7 @@ export default class RyokoAbortController {
      * 手动终止请求
      */
     public abortFetch() {
-        const { controller, isAllow, singal } = this;
+        const { controller, isAllow } = this;
         isAllow && !this.aborted && controller.abort();
     }
 

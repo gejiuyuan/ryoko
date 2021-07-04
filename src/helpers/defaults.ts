@@ -1,7 +1,7 @@
 import { noop } from '../shared/utils';
 import {
     RyokoDefaultConfig,
-} from 'types';
+} from '../types';
 import { _globalThis } from './constant';
 
 const defaultRyokoConfig: RyokoDefaultConfig = {

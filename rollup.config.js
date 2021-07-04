@@ -65,7 +65,9 @@ const createBundleconf = (type) => ({
         }),// 查找和打包node_modules中的第三方模块 
         commonjs(), //将 CommonJS 转换成 ES2015 模块供 Rollup 处理 
         json(),
-        typescript()
+        typescript({
+            useTsconfigDeclarationDir: true
+        })
     ],
 
     external: [

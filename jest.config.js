@@ -9,7 +9,7 @@ module.exports = {
     "ts", 
   ],
   
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
  
   testMatch: [
     // "**/__tests__/**/*.[jt]s?(x)",

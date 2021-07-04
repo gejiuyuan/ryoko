@@ -1,4 +1,4 @@
-import { PlainObject } from "types";
+import { PlainObject } from "../types";
 import RyokoError from './ryokoError'
 
 export const errors = [

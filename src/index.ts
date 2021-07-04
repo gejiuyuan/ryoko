@@ -1,9 +1,8 @@
-
 import {
     RyokoConfig,
     RyokoNativeFn,
     RyokoInstance,
-} from 'types';
+} from './types';
 
 import Ryoko from './core/ryoko'
 import AbortTokenizer from './abort/abortToken';
@@ -37,5 +36,7 @@ export {
     abortOneRequest,
     abortPendingRequest,
 } from './abort/abortToken';
+
+export * from './types';
 
 export default ryoko;

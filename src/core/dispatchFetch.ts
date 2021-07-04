@@ -7,8 +7,7 @@ import {
     DownloadSchedulerFn,
     RyokoInstance,
     RyokoClass,
-    Ryoko
-} from 'types'
+} from '../types'
 
 import { ryokoStreamDeliver } from './ryokoStreamDeliver'
 
@@ -35,7 +34,7 @@ import {
 import RyokoError from '../helpers/ryokoError'
 
 import AbortTokenizer from '../abort/abortToken'
-import { warn } from '@/helpers/warn'
+import { warn } from '../helpers/warn'
 
 import RyokoAbortController from '../abort/abortController'
 
@@ -50,7 +49,17 @@ export default function dispatchFetch(
             'RyokoError'
         )
     }
-    const cloneConfig = { ...config }
+    //请求前钩子
+    config.beforeRequest.call(this, config);
+
+    //创建一个终止请求控制器
+    let abortCtrl = new RyokoAbortController();
+    //根据abortToken添加对应的手动终止请求函数
+    addAbortCallbacks(config.abortToken, function () {
+        abortCtrl?.restoreAbortTimer();
+        abortCtrl?.abortFetch();
+    });
+
     let {
         prefixUrl,
         url,
@@ -62,17 +71,16 @@ export default function dispatchFetch(
         verifyStatus,
         downloadScheduler,
         headers,
-        fetch: RyokoFetch,
-        abortToken,
-    } = cloneConfig;
+        fetch: ryokoFetch,
+    } = config;
 
     //根据用户传入config，获取fetch的options
-    let fetchConfig = {} as RequestInit
-    const configKeys = Object.keys(cloneConfig)
+    const fetchConfig = {} as RequestInit;
+    const configKeys = Object.keys(config)
     fetchCodeOptionKeys.forEach(key => {
         if (configKeys.includes(key)) {
             fetchConfig[key as keyof RequestInit] =
-                cloneConfig[key as keyof RyokoMergedConfig]
+                config[key as keyof RyokoMergedConfig];
         }
     });
 
@@ -80,16 +88,8 @@ export default function dispatchFetch(
     const fetchUrl = resolveRyokoUrl(prefixUrl, url, params);
 
     //获取请求body
-    const fetchBody = resolveRyokoBody(data)
+    const fetchBody = resolveRyokoBody(data);
     fetchBody && (fetchConfig.body = fetchBody);
-
-    //创建一个终止请求控制器
-    let abortCtrl = new RyokoAbortController()
-    //根据abortToken添加对应的手动终止请求函数
-    addAbortCallbacks(abortToken, function () {
-        abortCtrl?.restoreAbortTimer();
-        abortCtrl?.abortFetch();
-    })
 
     //存储abortber到该请求实例上 
     fetchConfig.signal = abortCtrl.singal;
@@ -102,49 +102,46 @@ export default function dispatchFetch(
         abortCtrl.abortState().then((abortMsg) => {
             //如果是超时终止的请求，则执行
             if (abortCtrl.isDefer) {
-                onDefer && onDefer.call(this, cloneConfig);
+                onDefer && onDefer.call(this, config);
                 reject(
                     new RyokoError(
                         abortMsg,
-                        {
-                            config: cloneConfig
-                        }
+                        { config: config }
                     )
                 );
             }
         });
 
-        RyokoFetch(
+        ryokoFetch(
             fetchUrl,
             fetchConfig
         ).then(
 
-            res => {
+            async res => {
                 // 取消abort定时器
-                abortCtrl.restoreAbortTimer()
+                abortCtrl.restoreAbortTimer();
                 abortCtrl = null!;//!作用是告知ts强制转null为RyokoAbortController类型
 
                 const { body: resBody, status, } = res;
 
                 //将响应数据以流的形式传送处理
                 if (resBody != null) {
-                    res = ryokoStreamDeliver.call(this, res, downloadScheduler)
+                    res = ryokoStreamDeliver.call(this, res, downloadScheduler);
                 }
 
-                const RyokoRes = resolveRyokoResponse(res, cloneConfig)
+                const RyokoRes = await resolveRyokoResponse(res, config);
                 // 验证status状态码
                 const isSuccess = (verifyStatus as VerifyStatus)(status);
                 if (isSuccess) {
-                    resolve(RyokoRes)
+                    resolve(RyokoRes);
+                    //响应后钩子
+                    config.afterResponse.call(this, RyokoRes);
                 }
 
                 reject(
                     new RyokoError(
                         `The status of the Ryoko request response is ${status}`,
-                        {
-                            status,
-                            config: cloneConfig
-                        }
+                        { status, config }
                     )
                 )
             },
@@ -157,10 +154,7 @@ export default function dispatchFetch(
                 const status = err?.status
                 const errMsg = `The Ryoko Requestion miss an Error: ${err}`;
                 reject(
-                    new RyokoError(errMsg, {
-                        status,
-                        config: cloneConfig
-                    })
+                    new RyokoError(errMsg, { status, config })
                 )
 
             }

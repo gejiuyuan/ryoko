@@ -1,4 +1,4 @@
-import { RyokoConfig, RyokoDefaultConfig, RyokoMergedConfig } from "types";
+import { RyokoConfig, RyokoDefaultConfig, RyokoMergedConfig } from "../types";
 
 import {
     filterUselessKey,

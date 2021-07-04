@@ -1,4 +1,4 @@
-import { RyokoReqMethods } from 'types'
+import { RyokoReqMethods } from '../types'
 
 export const _globalThis =
     globalThis !== void 0

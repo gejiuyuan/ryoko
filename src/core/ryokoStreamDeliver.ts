@@ -3,7 +3,7 @@ import {
     DownloadSchedulerFn,
     RyokoInstance,
     RyokoClass,
-} from 'types';
+} from '../types';
 
 import {
     _globalThis,

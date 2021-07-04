@@ -12,9 +12,10 @@
 
     <script type="module">
 
-        import ryoko, { abortPendingRequest } from './dist/ryoko.esm.js';
+        import ryoko, { abortPendingRequest, abortAllRequest } from './dist/ryoko.esm.js';
         const AbortTokenizer = ryoko.AbortTokenizer;
         const creatorToken = AbortTokenizer.createToken();
+        const creatorToken2 = AbortTokenizer.createToken();
 
         let anfrage = ryoko.create({
             prefixUrl: 'https://api.i-meto.com/meting/',
@@ -26,18 +27,25 @@
                 // console.info(percent, received, total, buffer)
             },
             fetch: fetch,
-
         })
 
 
         anfrage.interceptors.request.use((config) => {
-            console.info(config)
+            abortPendingRequest(creatorToken);
             return config;
+        }, (err) => {
+            console.info(err)
         })
         anfrage.interceptors.response.use((res) => {
             return res;
         }, err => {
             return err
+        })
+
+        anfrage.get('/api?server=netease&type=playlist&id=2250705194&r=0.6640864071721952', {
+            abortToken: creatorToken2
+        }).then((res) => {
+            console.info(res)
         })
 
         let o = new URLSearchParams()
@@ -46,29 +54,26 @@
         o.append('id', 2308499)
         o.append('auth', 'da2b901838c26e789182ebbd1c0618feb5a73551')
 
+        for (let i = 0; i < 30; i++) {
+            anfrage.get('/api', {
+                timeout: 1000,
+                params: o,
+                responseType: 'text',
+                beforeRequest(config) {
 
-        anfrage.get('/api', {
-            timeout: 80,
-            params: o,
-            responseType: 'text',
-            beforeRequest(config) {
+                },
+                afterResponse(res) {
+                },
+                abortToken: creatorToken,
 
-            },
-            afterResponse(res) {
-
-            },
-            abortToken: creatorToken,
-
-        }).then((res) => {
-            console.info(res)
-            // console.info(res)
-        }).catch((err) => {
-            console.dir(err)
-        })
-
-        setTimeout(() => {
-            abortPendingRequest(creatorToken);
-        }, 10)
+            }).then((res) => {
+                console.info(res, i)
+                // console.info(res)
+                // console.info(res)
+            }).catch((err) => {
+                // console.dir(err)
+            })
+        }
 
 
         // anfrage({

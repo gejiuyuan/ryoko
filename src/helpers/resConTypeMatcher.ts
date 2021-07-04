@@ -1,4 +1,4 @@
-import { PlainObject } from 'types';
+import { PlainObject } from '../types';
 import {
     CONTENT_TYPE
 } from './constant'

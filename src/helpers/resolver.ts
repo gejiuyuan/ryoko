@@ -7,7 +7,7 @@ import {
     RyokoMergedConfig,
     RyokoDefaultConfig,
     PlainObject,
-} from 'types'
+} from '../types'
 
 import {
     fetchBodyInitTypes,
@@ -23,8 +23,7 @@ import getContentTypeVal from './resConTypeMatcher'
 import {
     typeOf,
     extend,
-    is,
-    getURLDescriptors,
+    is, 
     objToQuery,
     queryToObj,
     iteratorToObj,
