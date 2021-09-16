@@ -60,17 +60,21 @@ const hasOwn = (ins, key) => hasOwnProp.call(ins, key);
 const override = Object.assign;
 const noop = function (a, b, c) { };
 const URLPATT = /(([^:]+:)\/\/(([^:\/\?#]+)(:\d+)?))(\/[^?#]*)?(\?[^#]*)?(#.*)?/;
+const extendCore = (tar, s) => {
+    if (Object(s) === s) {
+        Object.keys(s).forEach(key => {
+            if (tar[key] === void 0) {
+                tar[key] = s[key];
+            }
+            else {
+                extendCore(tar[key], s[key]);
+            }
+        });
+    }
+    return tar;
+};
 function extend(target, ...source) {
     target = Object(target);
-    const extendCore = (tar, s) => {
-        if (Object(s) === s) {
-            Object.keys(s).forEach(key => {
-                tar[key] === void 0 &&
-                    (tar[key] = s[key]);
-            });
-        }
-        return tar;
-    };
     let merged;
     if (source.length !== 1) {
         merged = source.reduce((tar, s) => extendCore(tar, s), {});
@@ -179,6 +183,7 @@ const defaultRyokoConfig = {
     beforeRequest: noop,
     afterResponse: noop,
     credentials: 'same-origin',
+    params: {},
 };
 
 /*! *****************************************************************************
@@ -597,7 +602,7 @@ function dispatchFetch(config) {
             abortCtrl = null; //!作用是告知ts强制转null为RyokoAbortController类型
             const { body: resBody, status, } = res;
             //将响应数据以流的形式传送处理
-            if (resBody != null) {
+            if (resBody != null && downloadScheduler) {
                 res = ryokoStreamDeliver.call(this, res, downloadScheduler);
             }
             const RyokoRes = yield resolveRyokoResponse(res, config);
@@ -608,7 +613,9 @@ function dispatchFetch(config) {
                 //响应后钩子
                 config.afterResponse.call(this, RyokoRes);
             }
-            reject(new RyokoError(`The status of the Ryoko request response is ${status}`, { status, config }));
+            else {
+                reject(new RyokoError(`The status of the Ryoko request response is ${status}`, { status, config }));
+            }
         }), err => {
             if (abortCtrl.aborted)
                 return;
@@ -632,7 +639,7 @@ const mergeRyokoConfig = (initialConfig, commonConfig) => {
             options:${ryokoMethods.join('、')}`, 'TypeError');
     }
     if (['get', 'head', 'options'].includes(method)) {
-        delete mergedConfig.data;
+        Reflect.deleteProperty(mergedConfig, 'data');
     }
     else {
         mergedConfig.data = resolveRyokoBody(data);
@@ -641,7 +648,7 @@ const mergeRyokoConfig = (initialConfig, commonConfig) => {
         warn(`The 'fetch' option you provided is not a function!`, 'TypeError');
     }
     if (typeof credentials === 'boolean') {
-        credentials = credentials ? 'include' : 'omit';
+        mergedConfig.credentials = credentials = credentials ? 'include' : 'omit';
     }
     else if (!credentialsTypes.includes(credentials)) {
         warn(`The valid type of 'credentials' paramter：Boolean、undefined、${credentialsTypes.join('、')}`, 'TypeError');

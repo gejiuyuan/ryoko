@@ -2,6 +2,8 @@ import {
     PlainObject,
     RyokoAppendBody,
     RyokoAppendBodySource,
+    WebURL,
+    IteratorObj,
 } from "../types";
 
 import { fetchBodyAppendDataTypes, _globalThis } from '../helpers/constant'
@@ -38,20 +40,24 @@ export const parseUrl = (url: string) => {
     return result;
 }
 
+export const extendCore = (tar: PlainObject, s: PlainObject) => {
+    if (Object(s) === s) {
+        Object.keys(s).forEach(key => {
+            if (tar[key] === void 0) {
+                tar[key] = s[key]
+            } else {
+                extendCore(tar[key], s[key]);
+            }
+        })
+    }
+    return tar
+}
+
 export function extend(
     target: PlainObject,
     ...source: PlainObject[]
 ): PlainObject {
     target = Object(target);
-    const extendCore = (tar: PlainObject, s: PlainObject) => {
-        if (Object(s) === s) {
-            Object.keys(s).forEach(key => {
-                tar[key] === void 0 &&
-                    (tar[key] = s[key])
-            })
-        }
-        return tar
-    }
     let merged: PlainObject
     if (source.length !== 1) {
         merged = source.reduce((tar, s) => extendCore(tar, s), {})
@@ -80,12 +86,12 @@ export const is: PlainObject<
             },
             {} as PlainObject<(ins: any) => boolean>
         );
- 
+
 is.Array = Array.isArray;
 
-is.emptyArray = ins => 
-    is.Array(ins) && 
-    ins.length < 1; 
+is.emptyArray = ins =>
+    is.Array(ins) &&
+    ins.length < 1;
 
 is.Object = ins =>
     typeof ins === 'object' &&
@@ -93,9 +99,9 @@ is.Object = ins =>
     'constructor' in ins &&
     ins.constructor === Object;
 
-is.PlainObject = ins => 
-    typeof ins === 'object' && 
-    ins !== null && 
+is.PlainObject = ins =>
+    typeof ins === 'object' &&
+    ins !== null &&
     typeOf(ins) === 'Object';
 
 is.emptyObject = ins =>
@@ -124,7 +130,7 @@ export const appendParam = (
         ? value.forEach(v => form.append(key, v))
         : form.append(key, value);
 }
- 
+
 export const queryToObj = (
     query: string
 ) => {
@@ -170,7 +176,7 @@ export const encode = (
         replace(/%5B/gi, '[').
         replace(/%5D/gi, ']');
 }
- 
+
 export const filterUselessKey = (
     obj: PlainObject<any>
 ) => {
@@ -181,11 +187,11 @@ export const filterUselessKey = (
 }
 
 export const iteratorToObj = (
-    iterator: IteratorObj<any>,
+    iterator: Headers,
     lowerKey = false
 ) => {
     let obj: PlainObject = {}
-    for (let [key, value] of iterator.entries()) {
+    for (let [key, value] of (iterator as any).entries()) {
         const realKey = lowerKey ? key.toLowerCase() : key;
         obj[realKey] = value
     }

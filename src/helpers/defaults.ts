@@ -28,6 +28,8 @@ const defaultRyokoConfig: RyokoDefaultConfig = {
 
     credentials: 'same-origin',
 
+    params: {},
+
 };
 
 export default defaultRyokoConfig

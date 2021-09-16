@@ -125,7 +125,7 @@ export default function dispatchFetch(
                 const { body: resBody, status, } = res;
 
                 //将响应数据以流的形式传送处理
-                if (resBody != null) {
+                if (resBody != null && downloadScheduler) {
                     res = ryokoStreamDeliver.call(this, res, downloadScheduler);
                 }
 
@@ -137,13 +137,14 @@ export default function dispatchFetch(
                     //响应后钩子
                     config.afterResponse.call(this, RyokoRes);
                 }
-
-                reject(
-                    new RyokoError(
-                        `The status of the Ryoko request response is ${status}`,
-                        { status, config }
+                else {
+                    reject(
+                        new RyokoError(
+                            `The status of the Ryoko request response is ${status}`,
+                            { status, config }
+                        )
                     )
-                )
+                }
             },
 
             err => {

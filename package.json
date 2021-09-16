@@ -1,6 +1,6 @@
 {
   "name": "ryoko",
-  "version": "0.1.52",
+  "version": "0.1.6",
   "description": "a requestion lib based on the fetch native api",
   "main": "dist/ryoko.cjs.js",
   "types": "dist/types/index.d.ts",

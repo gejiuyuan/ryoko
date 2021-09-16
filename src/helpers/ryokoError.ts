@@ -1,6 +1,5 @@
 import { extend } from "../shared/utils";
 import { RyokoMergedConfig, RyokoErrorOptions } from "../types";
-
 export default class RyokoError extends Error {
 
     public readonly name: string = 'RyokoError'
@@ -39,12 +38,12 @@ export default class RyokoError extends Error {
             columnNumber,
             //Ryoko
             config,
-            status, 
-        } = this
+            status,
+        } = this as any;
 
         return {
             message, number, description, fileName, lineNumber, stack, columnNumber, name,
-            config, status, 
+            config, status,
         }
 
     }

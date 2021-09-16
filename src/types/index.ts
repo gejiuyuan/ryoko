@@ -142,7 +142,7 @@ export type VerifyStatus = (status: number | string) => boolean
 
 export type RyokoDefaultConfigKeys =
     'prefixUrl' | 'url' | 'method' | 'timeout' | 'onDefer' | 'responseType' |
-    'verifyStatus' | 'fetch' | 'beforeRequest' | 'afterResponse' | 'credentials'
+    'verifyStatus' | 'fetch' | 'beforeRequest' | 'afterResponse' | 'credentials' | 'params'
 
 export type RyokoDefaultConfig =
     Required<
@@ -168,4 +168,25 @@ export interface RyokoResponse {
     config: RyokoConfig;
 }
 
+export interface WebURL {
+    hash: string;
+    host: string;
+    hostname: string;
+    href: string;
+    origin: string;
+    pathname: string;
+    port: string;
+    protocol: string;
+    search: string;
+}
 
+export interface IteratorObj<T> {
+
+    [Symbol.iterator](): IterableIterator<T>;
+
+    entries(): IterableIterator<[string, T]>;
+
+    keys(): IterableIterator<string>;
+
+    values(): IterableIterator<T>;
+}

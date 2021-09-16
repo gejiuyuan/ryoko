@@ -7,6 +7,7 @@ import {
     RyokoMergedConfig,
     RyokoDefaultConfig,
     PlainObject,
+    IteratorObj,
 } from '../types'
 
 import {
@@ -16,14 +17,10 @@ import {
     resposneTypes,
 } from './constant'
 
-import RyokoError from './ryokoError'
-
-import getContentTypeVal from './resConTypeMatcher'
-
 import {
     typeOf,
     extend,
-    is, 
+    is,
     objToQuery,
     queryToObj,
     iteratorToObj,
@@ -31,7 +28,6 @@ import {
     isSupportURL,
     URLPATT,
 } from '../shared/utils';
-import Ryoko from '../core/ryoko';
 import { warn } from './warn';
 
 /**
@@ -127,9 +123,9 @@ export const resolveRyokoResponse = async (
     res: Response,
     config: RyokoMergedConfig
 ) => {
-    const { statusText, status, headers, } = res
-    const headersObj = iteratorToObj(headers, true)
-    const ryokoRes = {} as RyokoResponse
+    const { statusText, status, headers, } = res;
+    const headersObj = iteratorToObj(headers, true);
+    const ryokoRes = {} as RyokoResponse;
     ryokoRes.source = res.clone();
     ryokoRes.status = status;
     ryokoRes.statusText = statusText;

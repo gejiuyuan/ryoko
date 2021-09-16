@@ -46,7 +46,7 @@ const mergeRyokoConfig = (
     }
 
     if (['get', 'head', 'options'].includes(method)) {
-        delete mergedConfig.data
+        Reflect.deleteProperty(mergedConfig, 'data');
     } else {
         mergedConfig.data = resolveRyokoBody(data)
     }
@@ -59,7 +59,7 @@ const mergeRyokoConfig = (
     }
 
     if (typeof credentials === 'boolean') {
-        credentials = credentials ? 'include' : 'omit';
+        mergedConfig.credentials = credentials = credentials ? 'include' : 'omit';
     } else if (
         !credentialsTypes.includes(credentials)
     ) {

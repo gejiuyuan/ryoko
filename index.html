@@ -20,12 +20,15 @@
         let anfrage = ryoko.create({
             prefixUrl: 'https://api.i-meto.com/meting/',
             timeout: 1000,
+            params: {
+                a:2,
+            },
             onDefer(config) {
                 // console.info(config)
             },
-            downloadScheduler({ percent, total, received, buffer }) {
-                // console.info(percent, received, total, buffer)
-            },
+            // downloadScheduler({ percent, total, received, buffer }) {
+            //     // console.info(percent, received, total, buffer)
+            // },
             fetch: fetch,
         })
 
@@ -33,13 +36,9 @@
         anfrage.interceptors.request.use((config) => {
             abortPendingRequest(creatorToken);
             return config;
-        }, (err) => {
-            console.info(err)
         })
         anfrage.interceptors.response.use((res) => {
             return res;
-        }, err => {
-            return err
         })
 
         anfrage.get('/api?server=netease&type=playlist&id=2250705194&r=0.6640864071721952', {
@@ -57,7 +56,12 @@
         for (let i = 0; i < 30; i++) {
             anfrage.get('/api', {
                 timeout: 1000,
-                params: o,
+                params: {
+                    server: 'netease',
+                    type: 'lrc',
+                    id: 2308499,
+                    auth: 'da2b901838c26e789182ebbd1c0618feb5a73551'
+                },
                 responseType: 'text',
                 beforeRequest(config) {
 

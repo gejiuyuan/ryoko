@@ -1,26 +1,24 @@
 {
-	"compilerOptions": {
-		"target": "es2015", //rollup目标编译es版本
-		"module": "esnext",
-		"lib": ["DOM", "esnext"],
-		"outDir": "dist/lib",
-		"rootDir": "src",
-		"baseUrl": "./",
-		"paths": {
-			 
-		},
-		"declaration": true,
-		"declarationDir": "dist/types",
-		// "declarationMap": true,
-		// "sourceMap": true,
-		"downlevelIteration": true,
-		"isolatedModules": true,
-		"strict": true,
-		"moduleResolution": "node",
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true
-	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "global.d.ts"],
-	"exclude": ["__test__/**/*.ts"]
+  "compilerOptions": {
+    "target": "es2015", //rollup目标编译es版本
+    "module": "esnext",
+    "lib": ["DOM", "esnext"],
+    "outDir": "dist/lib",
+    "rootDir": "src",
+    "baseUrl": "./",
+    "paths": {},
+    "declaration": true,
+    "declarationDir": "dist/types",
+    // "declarationMap": true,
+    // "sourceMap": true,
+    "downlevelIteration": true,
+    "isolatedModules": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["__test__/**/*.ts"]
 }

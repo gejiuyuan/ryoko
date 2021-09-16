@@ -96,7 +96,7 @@ export default class Ryoko {
             const responseInterceptor = promisesQueueBefore.shift()!;
             try {
                 actualMergedConfig = requestInterceptor(mergedConfig);
-            } catch (err) {
+            } catch (err: any) {
                 responseInterceptor(err);
                 break;
             }
