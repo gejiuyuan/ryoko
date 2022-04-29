@@ -3,7 +3,7 @@
   "version": "0.1.6",
   "description": "a requestion lib based on the fetch native api",
   "main": "dist/ryoko.cjs.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "module": "dist/ryoko.esm.js",
   "jsdelivr": "dist/ryoko.min.js",
   "unpkg": "dist/ryoko.min.js",
@@ -13,7 +13,7 @@
     "test": "jest --detectOpenHandles",
     "build:rollup": "rollup --config",
     "build:tsc": "npx tsc -p .",
-    "build": "npm run build:rollup && npm run build:tsc"
+    "build": "npm run build:rollup"
   },
   "keywords": [
     "ryoko",
@@ -68,6 +68,7 @@
     "eslint-plugin-prettier": "^3.3.1",
     "jest": "^26.6.3",
     "rollup": "^2.41.4",
+    "rollup-plugin-dts": "^4.2.1",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
     "ts-jest": "^26.5.4",

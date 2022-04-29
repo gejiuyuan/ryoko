@@ -80,7 +80,7 @@ export default function dispatchFetch(
     fetchCodeOptionKeys.forEach(key => {
         if (configKeys.includes(key)) {
             fetchConfig[key as keyof RequestInit] =
-                config[key as keyof RyokoMergedConfig];
+                config[key as keyof RyokoMergedConfig] as any;
         }
     });
 

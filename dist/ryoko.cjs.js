@@ -111,6 +111,9 @@ const isSupportAbortController = 'AbortController' in _globalThis &&
 const isFetch = (ins) => {
     return is.Function(ins);
 };
+'URL' in _globalThis &&
+    'createObjectURL' in _globalThis.URL &&
+    'revokeObjectURL' in _globalThis.URL;
 const queryToObj = (query) => {
     let obj = {};
     const prefixMatched = query.match(/^.*\?/);
@@ -734,4 +737,4 @@ ryoko.spread = (callback) => (promisesArr) => callback.apply(null, promisesArr);
 exports.abortAllRequest = abortAllRequest;
 exports.abortOneRequest = abortOneRequest;
 exports.abortPendingRequest = abortPendingRequest;
-exports.default = ryoko;
+exports["default"] = ryoko;

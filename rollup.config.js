@@ -1,6 +1,7 @@
 import path from 'path';
 import typescript from 'rollup-plugin-typescript2';
 import { terser } from 'rollup-plugin-terser';
+import dts from "rollup-plugin-dts";
 
 //rollup默认采用es module引用方式，该插件可支持编译使用commonjs的库
 import commonjs from '@rollup/plugin-commonjs';
@@ -74,7 +75,7 @@ const createBundleconf = (type) => ({
         commonjs(), //将 CommonJS 转换成 ES2015 模块供 Rollup 处理 
         json(),
         typescript({
-            useTsconfigDeclarationDir: true
+            // useTsconfigDeclarationDir: true
         })
     ],
 
@@ -83,6 +84,14 @@ const createBundleconf = (type) => ({
     ],
 
 
-})
+});
 
-export default Object.keys(configs).map(createBundleconf);
+const typesConf = {
+    input: resolve('index.ts'),
+    output: [{ 
+        file: "dist/index.d.ts", format: "es" 
+    }],
+    plugins: [dts()],
+};
+
+export default [...Object.keys(configs).map(createBundleconf), typesConf];
