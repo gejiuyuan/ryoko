@@ -44,7 +44,15 @@ const configs = {
         name: libName,
         exports: 'named',
         plugins: [
-            terser(),
+            terser({
+                compress: {
+                    drop_console: true,
+                    drop_debugger: true
+                },
+                format: {
+                    comments: false
+                }
+            }),
         ],
         extend: true
     },
